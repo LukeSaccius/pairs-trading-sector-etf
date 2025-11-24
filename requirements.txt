@@ -1,0 +1,44 @@
+# Core scientific stack
+numpy==2.1.2
+pandas==2.2.3
+scipy==1.14.1
+statsmodels==0.14.4
+scikit-learn==1.6.0
+polars==1.13.0
+pyarrow==18.0.0
+
+# Data acquisition & APIs
+yfinance==0.2.50
+alpaca-trade-api==3.2.0
+ccxt==4.2.85
+
+# Time-series & econometrics
+arch==6.3.0
+linearmodels==6.1.0
+pmdarima==2.0.5
+
+# Pipeline orchestration & configuration
+prefect==3.0.1
+hydra-core==1.4.0
+
+# Visualization & reporting
+matplotlib==3.9.2
+seaborn==0.13.2
+plotly==5.24.0
+dash==2.18.1
+
+# Storage & analytics helpers
+duckdb==1.1.0
+
+# Notebook & dev experience
+ipykernel==6.29.5
+jupyterlab==4.3.1
+nbstripout==0.7.1
+
+# Quality & testing
+pytest==8.3.3
+pytest-cov==5.0.0
+black==24.10.0
+ruff==0.7.0
+mypy==1.13.0
+pre-commit==4.0.1
