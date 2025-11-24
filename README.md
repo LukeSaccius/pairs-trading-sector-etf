@@ -2,6 +2,27 @@
 
 Research repo for a cointegration-based pairs trading strategy on U.S. sector ETFs. Includes data fetchers, OU mean-reversion modeling, backtesting with realistic costs, and reproducible Jupyter notebooks plus final paper.
 
+## Project Structure *(Core)*
+- `src/pairs_trading_etf/` – research package (data, cointegration, OU model, signals, backtests, utils)
+- `configs/` – YAML configs (currently `data.yaml` for ticker universe and dates)
+- `data/raw|processed/` – downloaded CSVs and cleaned artifacts (git-ignored)
+- `notebooks/` – week-by-week research narratives (Week 1 scaffold included)
+- `results/figures|backtests/` – generated plots and evaluation exports
+- `reports/drafts|final/` – thesis write-ups
+- `tests/` – unit and smoke tests
+- `notes/`, `advisor_logs/`, `docs/` – qualitative planning materials
+
+## Quickstart *(Core)*
+```bash
+python -m venv .venv
+source .venv/Scripts/activate  # or .\.venv\Scripts\Activate.ps1 on Windows
+pip install --upgrade pip
+pip install -r requirements.txt
+
+pytest tests/  # optional smoke checks
+jupyter notebook notebooks/week1_data_cointegration.ipynb
+```
+
 ## 1. Overview *(Core)*
 - Purpose of the six-week research sprint
 - High-level description of the pairs trading methodology and success metrics

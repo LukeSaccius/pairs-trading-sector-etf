@@ -1,0 +1,16 @@
+# Universe configuration for ETF universe and ingestion parameters
+universe:
+  etfs:
+    # Default U.S. sector / industry ETFs (can expand later)
+    - XLK  # Technology Select Sector SPDR Fund
+    - IYW  # iShares U.S. Technology ETF
+    - XLF  # Financial Select Sector SPDR Fund
+    - VFH  # Vanguard Financials ETF
+    - XLE  # Energy Select Sector SPDR Fund
+    - XLY  # Consumer Discretionary Select Sector SPDR Fund
+
+data:
+  start_date: "2014-01-01"  # Inclusive start date for historical download
+  end_date: "2024-12-31"    # Inclusive end date (adjust as research evolves)
+  source: "yahoo"           # Data provider identifier (currently yfinance)
+  frequency: "1d"           # Sampling frequency (1d daily bars for now)
