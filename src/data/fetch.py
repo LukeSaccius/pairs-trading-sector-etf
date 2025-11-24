@@ -40,6 +40,8 @@ def download_etf_prices(
     >>> print(prices.head())
     """
     # Download data for all tickers
+    # Using auto_adjust=True to get split/dividend-adjusted prices automatically
+    # This is appropriate for research purposes to ensure price series are comparable
     data = yf.download(
         tickers=tickers,
         start=start_date,
