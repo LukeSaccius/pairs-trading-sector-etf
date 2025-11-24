@@ -15,7 +15,7 @@ ccxt==4.2.85
 # Time-series & econometrics
 arch==6.3.0
 linearmodels==6.1.0
-pmdarima==2.0.5
+pmdarima==2.1.1
 
 # Pipeline orchestration & configuration
 prefect==3.0.1
