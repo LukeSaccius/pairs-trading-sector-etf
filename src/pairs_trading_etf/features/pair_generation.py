@@ -1,0 +1,145 @@
+"""Pair enumeration and scoring helpers used by scanning pipelines."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Mapping, Sequence
+
+import pandas as pd
+
+from pairs_trading_etf.cointegration.engle_granger import EngleGrangerResult, run_engle_granger
+
+
+@dataclass(frozen=True)
+class PairScore:
+    """Summary statistics for a candidate ETF pair."""
+
+    leg_x: str
+    leg_y: str
+    correlation: float
+    n_obs: int
+    spread_mean: float | None = None
+    spread_std: float | None = None
+    hedge_ratio: float | None = None
+    coint_statistic: float | None = None
+    coint_pvalue: float | None = None
+    half_life: float | None = None
+
+    def as_dict(self) -> Mapping[str, float | int | None]:
+        return {
+            "leg_x": self.leg_x,
+            "leg_y": self.leg_y,
+            "correlation": self.correlation,
+            "n_obs": self.n_obs,
+            "spread_mean": self.spread_mean,
+            "spread_std": self.spread_std,
+            "hedge_ratio": self.hedge_ratio,
+            "coint_statistic": self.coint_statistic,
+            "coint_pvalue": self.coint_pvalue,
+            "half_life": self.half_life,
+        }
+
+
+def enumerate_pairs(tickers: Sequence[str]) -> list[tuple[str, str]]:
+    """Enumerate unique unordered ticker combinations."""
+
+    cleaned = [str(t).strip().upper() for t in tickers]
+    pairs: list[tuple[str, str]] = []
+    for idx in range(len(cleaned)):
+        for jdx in range(idx + 1, len(cleaned)):
+            pairs.append((cleaned[idx], cleaned[jdx]))
+    return pairs
+
+
+def _engle_granger_fields(result: EngleGrangerResult | None) -> dict[str, float | None]:
+    if result is None:
+        return {
+            "spread_mean": None,
+            "spread_std": None,
+            "hedge_ratio": None,
+            "coint_statistic": None,
+            "coint_pvalue": None,
+            "half_life": None,
+        }
+
+    return {
+        "spread_mean": result.spread_mean,
+        "spread_std": result.spread_std,
+        "hedge_ratio": result.hedge_ratio,
+        "coint_statistic": result.test_statistic,
+        "coint_pvalue": result.pvalue,
+        "half_life": result.half_life,
+    }
+
+
+def score_pairs(
+    prices: pd.DataFrame,
+    min_obs: int = 252,
+    min_corr: float = 0.85,
+    lookback: int | None = None,
+    max_pairs: int | None = None,
+    run_cointegration: bool = True,
+    engle_granger_kwargs: Mapping[str, object] | None = None,
+) -> list[PairScore]:
+    """Rank ETF pairs by correlation and optional Engle-Granger p-values."""
+
+    if prices.empty:
+        return []
+
+    prices = prices.copy()
+    prices.columns = [str(col).upper() for col in prices.columns]
+    if lookback is not None and lookback > 0:
+        prices = prices.tail(lookback)
+
+    returns = prices.pct_change().dropna()
+    if returns.empty:
+        return []
+
+    candidates = enumerate_pairs(returns.columns)
+    if not candidates:
+        return []
+
+    granger_kwargs = dict(engle_granger_kwargs or {})
+
+    scored: list[PairScore] = []
+    for leg_x, leg_y in candidates:
+        pair_returns = returns[[leg_x, leg_y]].dropna()
+        n_obs = pair_returns.shape[0]
+        if n_obs < min_obs:
+            continue
+
+        corr = pair_returns[leg_x].corr(pair_returns[leg_y])
+        if pd.isna(corr) or corr < min_corr:
+            continue
+
+        pair_prices = prices[[leg_x, leg_y]].loc[pair_returns.index].dropna()
+        eg_result: EngleGrangerResult | None = None
+        if run_cointegration:
+            try:
+                eg_result = run_engle_granger(
+                    pair_prices[leg_x], pair_prices[leg_y], **granger_kwargs
+                )
+            except ValueError:
+                continue
+
+        fields = _engle_granger_fields(eg_result)
+        scored.append(
+            PairScore(
+                leg_x=leg_x,
+                leg_y=leg_y,
+                correlation=float(corr),
+                n_obs=int(n_obs),
+                **fields,
+            )
+        )
+
+    def _sort_key(item: PairScore) -> tuple[float, float]:
+        pvalue = item.coint_pvalue if item.coint_pvalue is not None else 1.0
+        return (pvalue, -item.correlation)
+
+    scored.sort(key=_sort_key)
+
+    if max_pairs is not None and max_pairs > 0:
+        scored = scored[:max_pairs]
+
+    return scored
