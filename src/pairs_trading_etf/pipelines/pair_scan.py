@@ -30,6 +30,7 @@ class PairScanConfig:
     max_pairs: int | None = 10
     return_method: str = "log"
     engle_granger_maxlag: int = 1
+    allow_cross_sector: bool = True
 
 
 def _load_universe(cfg: PairScanConfig) -> ETFUniverse:
@@ -46,6 +47,7 @@ def _load_prices(cfg: PairScanConfig, tickers: Sequence[str]) -> PriceFrame:
         tickers=tickers,
         min_non_na=cfg.min_obs,
         return_method=cfg.return_method,
+        allow_missing=True,
     )
     if cfg.lookback_days is not None and cfg.lookback_days > 0:
         frame = frame.slice_last(cfg.lookback_days)
@@ -58,6 +60,28 @@ def pair_scores_to_frame(scores: Sequence[PairScore], universe_name: str) -> pd.
         record = {"universe": universe_name, **score.as_dict()}
         rows.append(record)
     return pd.DataFrame(rows)
+
+
+def _filter_sector_pairs(
+    scores: Sequence[PairScore], universe: ETFUniverse, allow_cross_sector: bool
+) -> list[PairScore]:
+    if allow_cross_sector:
+        return list(scores)
+
+    metadata = universe.metadata or {}
+    if not metadata:
+        return list(scores)
+
+    sector_lookup = {ticker.upper(): meta.sector for ticker, meta in metadata.items()}
+    filtered: list[PairScore] = []
+    for score in scores:
+        sector_x = sector_lookup.get(score.leg_x)
+        sector_y = sector_lookup.get(score.leg_y)
+        if sector_x is None or sector_y is None:
+            continue
+        if sector_x == sector_y:
+            filtered.append(score)
+    return filtered
 
 
 def run_pair_scan(cfg: PairScanConfig) -> pd.DataFrame:
@@ -73,6 +97,8 @@ def run_pair_scan(cfg: PairScanConfig) -> pd.DataFrame:
         run_cointegration=True,
         engle_granger_kwargs={"maxlag": cfg.engle_granger_maxlag},
     )
+
+    scores = _filter_sector_pairs(scores, universe, allow_cross_sector=cfg.allow_cross_sector)
 
     result_df = pair_scores_to_frame(scores, universe_name=universe.name)
 
@@ -97,6 +123,11 @@ def main() -> None:
     parser.add_argument("--max-pairs", type=int, default=10, help="Maximum number of pairs to keep")
     parser.add_argument("--maxlag", type=int, default=1, help="Max lag for Engle-Granger test")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT_PATH, help="Where to persist CSV results")
+    parser.add_argument(
+        "--same-sector-only",
+        action="store_true",
+        help="Restrict output to pairs where both legs share the same metadata sector",
+    )
 
     args = parser.parse_args()
 
@@ -111,6 +142,7 @@ def main() -> None:
         min_corr=args.min_corr,
         max_pairs=args.max_pairs,
         engle_granger_maxlag=args.maxlag,
+        allow_cross_sector=not args.same_sector_only,
     )
 
     df = run_pair_scan(cfg)

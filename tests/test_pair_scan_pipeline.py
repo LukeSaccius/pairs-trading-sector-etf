@@ -6,6 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 import yaml
 
 from pairs_trading_etf.pipelines.pair_scan import PairScanConfig, run_pair_scan
@@ -26,12 +27,14 @@ def _write_yaml(path: Path, payload: dict) -> None:
     path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
 
 
-def _build_metadata(tmp_path: Path, tickers: list[str]) -> Path:
+def _build_metadata(
+    tmp_path: Path, tickers: list[str], sector_map: dict[str, str] | None = None
+) -> Path:
     metadata_payload = {
         "etfs": {
             ticker: {
                 "name": ticker,
-                "sector": "Test",
+                "sector": (sector_map or {}).get(ticker, "Test"),
                 "region": "US",
                 "issuer": "UnitTest",
             }
@@ -95,3 +98,65 @@ def test_run_pair_scan_returns_ranked_pairs(tmp_path: Path) -> None:
     assert {"AAA", "BBB"} == {df.iloc[0]["leg_x"], df.iloc[0]["leg_y"]}
     assert df.iloc[0]["coint_pvalue"] < 0.05
     assert df.iloc[0]["correlation"] > 0.95
+
+
+def test_run_pair_scan_same_sector_only(tmp_path: Path) -> None:
+    prices = _synthetic_prices()
+    price_path = tmp_path / "prices.csv"
+    prices.to_csv(price_path)
+
+    tickers = ["AAA", "BBB", "CCC"]
+    sector_map = {"AAA": "Tech", "BBB": "Tech", "CCC": "Energy"}
+    metadata_path = _build_metadata(tmp_path, tickers, sector_map)
+    config_path = _build_config(tmp_path, metadata_path, tickers)
+
+    cfg = PairScanConfig(
+        config_path=config_path,
+        price_path=price_path,
+        output_path=None,
+        list_name=None,
+        metadata_path=metadata_path,
+        lookback_days=None,
+        min_obs=150,
+        min_corr=0.95,
+        max_pairs=5,
+        engle_granger_maxlag=1,
+        allow_cross_sector=False,
+    )
+
+    df = run_pair_scan(cfg)
+
+    assert not df.empty
+    unique_pairs = {(row["leg_x"], row["leg_y"]) for _, row in df.iterrows()}
+    assert unique_pairs == {("AAA", "BBB")}
+
+
+def test_run_pair_scan_drops_missing_tickers(tmp_path: Path) -> None:
+    prices = _synthetic_prices()
+    price_path = tmp_path / "prices.csv"
+    prices.to_csv(price_path)
+
+    tickers = ["AAA", "BBB", "CCC", "ZZZ"]
+    metadata_path = _build_metadata(tmp_path, tickers)
+    config_path = _build_config(tmp_path, metadata_path, tickers)
+
+    cfg = PairScanConfig(
+        config_path=config_path,
+        price_path=price_path,
+        output_path=None,
+        list_name=None,
+        metadata_path=metadata_path,
+        lookback_days=None,
+        min_obs=150,
+        min_corr=0.95,
+        max_pairs=5,
+        engle_granger_maxlag=1,
+        allow_cross_sector=True,
+    )
+
+    with pytest.warns(UserWarning):
+        df = run_pair_scan(cfg)
+
+    assert not df.empty
+    legs = set(df[["leg_x", "leg_y"]].stack())
+    assert "ZZZ" not in legs

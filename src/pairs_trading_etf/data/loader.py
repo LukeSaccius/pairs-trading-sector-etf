@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -58,7 +59,12 @@ def load_price_history(path: str | Path) -> pd.DataFrame:
     return _sanitize_frame(df)
 
 
-def select_tickers(df: pd.DataFrame, tickers: Sequence[str] | None = None) -> pd.DataFrame:
+def select_tickers(
+    df: pd.DataFrame,
+    tickers: Sequence[str] | None = None,
+    *,
+    allow_missing: bool = False,
+) -> pd.DataFrame:
     """Return a view containing only the requested tickers (if provided)."""
 
     if tickers is None:
@@ -66,10 +72,21 @@ def select_tickers(df: pd.DataFrame, tickers: Sequence[str] | None = None) -> pd
 
     normalized = [str(t).strip().upper() for t in tickers]
     missing = [t for t in normalized if t not in df.columns]
-    if missing:
+    if missing and not allow_missing:
         raise PriceLoaderError(
             f"Requested tickers missing from price frame: {', '.join(missing)}"
         )
+
+    if missing and allow_missing:
+        warnings.warn(
+            "Dropping tickers without price history: " + ", ".join(missing),
+            UserWarning,
+            stacklevel=2,
+        )
+        normalized = [t for t in normalized if t in df.columns]
+
+    if not normalized:
+        raise PriceLoaderError("No usable tickers remain after filtering price history")
 
     return df[normalized]
 
@@ -109,11 +126,13 @@ def build_price_frame(
     tickers: Sequence[str] | None = None,
     min_non_na: int = 252,
     return_method: str = "log",
+    *,
+    allow_missing: bool = False,
 ) -> PriceFrame:
     """Load, filter, and compute returns for downstream analytics."""
 
     prices = load_price_history(price_path)
-    prices = select_tickers(prices, tickers)
+    prices = select_tickers(prices, tickers, allow_missing=allow_missing)
     prices = drop_sparse_columns(prices, min_non_na=min_non_na)
     returns = compute_returns(prices, method=return_method)
     return PriceFrame(prices=prices, returns=returns)
