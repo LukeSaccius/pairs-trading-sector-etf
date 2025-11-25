@@ -1,0 +1,56 @@
+# Detailed metadata for ETFs referenced by the project
+etfs:
+  XLK:
+    name: "Technology Select Sector SPDR Fund"
+    sector: "Technology"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.10
+    benchmark: "Technology Select Sector Index"
+    description: "Large-cap U.S. technology equities with heavy mega-cap exposure"
+    inception: "1998-12-16"
+  IYW:
+    name: "iShares U.S. Technology ETF"
+    sector: "Technology"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.39
+    benchmark: "Russell 1000 Technology RIC 22.5/45 Capped Index"
+    description: "Broad-based U.S. tech coverage with slightly deeper mid-cap exposure"
+    inception: "2000-05-15"
+  XLF:
+    name: "Financial Select Sector SPDR Fund"
+    sector: "Financials"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.10
+    benchmark: "Financial Select Sector Index"
+    description: "Large-cap U.S. banks, insurers, and diversified financials"
+    inception: "1998-12-16"
+  VFH:
+    name: "Vanguard Financials ETF"
+    sector: "Financials"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.10
+    benchmark: "MSCI US Investable Market Financials 25/50 Index"
+    description: "Financial sector exposure with Vanguard's broader holdings"
+    inception: "2004-01-26"
+  XLE:
+    name: "Energy Select Sector SPDR Fund"
+    sector: "Energy"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.10
+    benchmark: "Energy Select Sector Index"
+    description: "Integrated oils plus oilfield services heavyweights"
+    inception: "1998-12-16"
+  XLY:
+    name: "Consumer Discretionary Select Sector SPDR Fund"
+    sector: "Consumer Discretionary"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.10
+    benchmark: "Consumer Discretionary Select Sector Index"
+    description: "U.S. discretionary companies with concentration in mega-cap retailers"
+    inception: "1998-12-16"

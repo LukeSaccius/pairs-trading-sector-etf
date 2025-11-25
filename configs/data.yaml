@@ -1,13 +1,45 @@
 # Universe configuration for ETF universe and ingestion parameters
 universe:
+  # Maintain backwards compatibility for earlier notebooks that expect `universe.etfs`
   etfs:
-    # Default U.S. sector / industry ETFs (can expand later)
-    - XLK  # Technology Select Sector SPDR Fund
-    - IYW  # iShares U.S. Technology ETF
-    - XLF  # Financial Select Sector SPDR Fund
-    - VFH  # Vanguard Financials ETF
-    - XLE  # Energy Select Sector SPDR Fund
-    - XLY  # Consumer Discretionary Select Sector SPDR Fund
+    - XLK
+    - IYW
+    - XLF
+    - VFH
+    - XLE
+    - XLY
+
+  # Named lists let us quickly pivot between different universes without
+  # editing notebooks. The default list is used by helper utilities.
+  default_list: "core_sectors"
+  lists:
+    core_sectors:
+      description: "Large, liquid U.S. sector ETFs spanning tech, financials, energy, discretionary"
+      sectors:
+        - "Technology"
+        - "Financials"
+        - "Energy"
+        - "Consumer Discretionary"
+      tickers:
+        - XLK
+        - IYW
+        - XLF
+        - VFH
+        - XLE
+        - XLY
+    tech_financial_pairs:
+      description: "Focused slice for finance vs tech relative value tests"
+      sectors:
+        - "Technology"
+        - "Financials"
+      tickers:
+        - XLK
+        - IYW
+        - XLF
+        - VFH
+
+metadata:
+  etf_info_path: "configs/etf_metadata.yaml"
 
 data:
   start_date: "2014-01-01"  # Inclusive start date for historical download
