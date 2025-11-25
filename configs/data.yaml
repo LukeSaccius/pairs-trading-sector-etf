@@ -8,6 +8,28 @@ universe:
     - VFH
     - XLE
     - XLY
+    - XLV
+    - XLI
+    - XLP
+    - XLB
+    - SPY
+    - QQQ
+    - XLU
+    - XLC
+    - XOP
+    - XME
+    - ITB
+    - XHB
+    - SMH
+    - SOXX
+    - IBB
+    - EEM
+    - EFA
+    - TLT
+    - HYG
+    - LQD
+    - DIA
+    - IWM
 
   # Named lists let us quickly pivot between different universes without
   # editing notebooks. The default list is used by helper utilities.
@@ -20,6 +42,9 @@ universe:
         - "Financials"
         - "Energy"
         - "Consumer Discretionary"
+        - "Health Care"
+        - "Industrials"
+        - "Consumer Staples"
       tickers:
         - XLK
         - IYW
@@ -27,6 +52,29 @@ universe:
         - VFH
         - XLE
         - XLY
+        - XLV
+        - XLI
+        - XLP
+        - XLB
+        - SPY
+        - QQQ
+        - XLU
+        - XLC
+        - XOP
+        - XME
+        - ITB
+        - XHB
+        - SMH
+        - SOXX
+        - IBB
+        - EEM
+        - EFA
+        - TLT
+        - HYG
+        - LQD
+        - DIA
+        - IWM
+      allow_cross_sector: false
     tech_financial_pairs:
       description: "Focused slice for finance vs tech relative value tests"
       sectors:
@@ -37,6 +85,63 @@ universe:
         - IYW
         - XLF
         - VFH
+      allow_cross_sector: true
+    extended_market:
+      description: "Adds defensive and broad-market ETFs for cross-sector stress tests"
+      sectors:
+        - "Technology"
+        - "Financials"
+        - "Energy"
+        - "Consumer Discretionary"
+        - "Health Care"
+        - "Industrials"
+        - "Consumer Staples"
+        - "Materials"
+        - "Broad Market"
+      tickers:
+        - XLK
+        - IYW
+        - XLF
+        - VFH
+        - XLE
+        - XLY
+        - XLV
+        - XLI
+        - XLP
+        - XLB
+        - SPY
+        - QQQ
+        - XLU
+        - XLC
+        - XOP
+        - XME
+        - ITB
+        - XHB
+        - SMH
+        - SOXX
+        - IBB
+        - EEM
+        - EFA
+        - TLT
+        - HYG
+        - LQD
+        - DIA
+        - IWM
+      allow_cross_sector: true
+    defensive_vs_growth:
+      description: "Pairs growth-heavy ETFs against defensives to test cross-sector cointegration"
+      sectors:
+        - "Technology"
+        - "Consumer Discretionary"
+        - "Health Care"
+        - "Consumer Staples"
+      tickers:
+        - QQQ
+        - XLK
+        - XLY
+        - XLV
+        - XLP
+      allow_cross_sector: true
 
 metadata:
   etf_info_path: "configs/etf_metadata.yaml"
@@ -46,3 +151,15 @@ data:
   end_date: "2024-12-31"    # Inclusive end date (adjust as research evolves)
   source: "yahoo"           # Data provider identifier (currently yfinance)
   frequency: "1d"           # Sampling frequency (1d daily bars for now)
+
+pair_scan:
+  # Default parameters consumed by notebooks/pipelines; override via PairScanConfig if needed
+  list_name: "core_sectors"
+  use_full_universe: true
+  allow_cross_sector: true
+  lookback_days: 252
+  min_obs: 180
+  min_corr: 0.85
+  max_pairs: 75
+  engle_granger_maxlag: 1
+  return_method: "log"

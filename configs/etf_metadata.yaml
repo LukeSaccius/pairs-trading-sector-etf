@@ -54,3 +54,201 @@ etfs:
     benchmark: "Consumer Discretionary Select Sector Index"
     description: "U.S. discretionary companies with concentration in mega-cap retailers"
     inception: "1998-12-16"
+  XLV:
+    name: "Health Care Select Sector SPDR Fund"
+    sector: "Health Care"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.10
+    benchmark: "Health Care Select Sector Index"
+    description: "Large-cap pharma, biotech, and managed care bellwethers"
+    inception: "1998-12-16"
+  XLI:
+    name: "Industrial Select Sector SPDR Fund"
+    sector: "Industrials"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.10
+    benchmark: "Industrial Select Sector Index"
+    description: "Diversified industrial conglomerates plus transportation leaders"
+    inception: "1998-12-16"
+  XLP:
+    name: "Consumer Staples Select Sector SPDR Fund"
+    sector: "Consumer Staples"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.10
+    benchmark: "Consumer Staples Select Sector Index"
+    description: "Defensive staples names spanning food, beverage, and household goods"
+    inception: "1998-12-16"
+  XLB:
+    name: "Materials Select Sector SPDR Fund"
+    sector: "Materials"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.10
+    benchmark: "Materials Select Sector Index"
+    description: "Chemicals, metals & mining, and construction materials exposure"
+    inception: "1998-12-16"
+  SPY:
+    name: "SPDR S&P 500 ETF Trust"
+    sector: "Broad Market"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.09
+    benchmark: "S&P 500 Index"
+    description: "Flagship U.S. large-cap benchmark ETF used as core beta"
+    inception: "1993-01-22"
+  QQQ:
+    name: "Invesco QQQ Trust"
+    sector: "Technology"
+    region: "US"
+    issuer: "Invesco"
+    expense_ratio: 0.20
+    benchmark: "Nasdaq-100 Index"
+    description: "Growth-oriented exposure to non-financial Nasdaq-100 constituents"
+    inception: "1999-03-10"
+  XLU:
+    name: "Utilities Select Sector SPDR Fund"
+    sector: "Utilities"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.10
+    benchmark: "Utilities Select Sector Index"
+    description: "U.S. regulated utilities and independent power producers"
+    inception: "1998-12-16"
+  XLC:
+    name: "Communication Services Select Sector SPDR Fund"
+    sector: "Communication Services"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.10
+    benchmark: "Communication Services Select Sector Index"
+    description: "Telecom, media, and interactive services bellwethers"
+    inception: "2018-06-18"
+  XOP:
+    name: "SPDR S&P Oil & Gas Exploration & Production ETF"
+    sector: "Energy"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.35
+    benchmark: "S&P Oil & Gas Exploration & Production Select Industry Index"
+    description: "Equal-weighted upstream energy producers"
+    inception: "2006-06-19"
+  XME:
+    name: "SPDR S&P Metals & Mining ETF"
+    sector: "Materials"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.35
+    benchmark: "S&P Metals & Mining Select Industry Index"
+    description: "Diversified metals, mining, and steel equities"
+    inception: "2006-06-19"
+  ITB:
+    name: "iShares U.S. Home Construction ETF"
+    sector: "Consumer Discretionary"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.39
+    benchmark: "Dow Jones U.S. Select Home Construction Index"
+    description: "Homebuilders and building products manufacturers"
+    inception: "2006-05-01"
+  XHB:
+    name: "SPDR S&P Homebuilders ETF"
+    sector: "Consumer Discretionary"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.35
+    benchmark: "S&P Homebuilders Select Industry Index"
+    description: "Equal-weight homebuilders and related suppliers"
+    inception: "2006-01-31"
+  SMH:
+    name: "VanEck Semiconductor ETF"
+    sector: "Technology"
+    region: "US"
+    issuer: "VanEck"
+    expense_ratio: 0.35
+    benchmark: "MVIS US Listed Semiconductor 25 Index"
+    description: "Concentrated U.S.-listed semiconductor manufacturers"
+    inception: "2000-12-20"
+  SOXX:
+    name: "iShares Semiconductor ETF"
+    sector: "Technology"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.35
+    benchmark: "ICE Semiconductor Index"
+    description: "Liquidity-weighted semiconductor exposure"
+    inception: "2001-07-10"
+  IBB:
+    name: "iShares Biotechnology ETF"
+    sector: "Health Care"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.45
+    benchmark: "NASDAQ Biotechnology Index"
+    description: "Large- and mid-cap biotechnology innovators"
+    inception: "2001-02-05"
+  EEM:
+    name: "iShares MSCI Emerging Markets ETF"
+    sector: "Broad Market"
+    region: "Global"
+    issuer: "BlackRock"
+    expense_ratio: 0.69
+    benchmark: "MSCI Emerging Markets Index"
+    description: "Diversified large/mid EM equities"
+    inception: "2003-04-07"
+  EFA:
+    name: "iShares MSCI EAFE ETF"
+    sector: "Broad Market"
+    region: "International"
+    issuer: "BlackRock"
+    expense_ratio: 0.33
+    benchmark: "MSCI EAFE Index"
+    description: "Developed ex-US large/mid caps"
+    inception: "2001-08-14"
+  TLT:
+    name: "iShares 20+ Year Treasury Bond ETF"
+    sector: "Fixed Income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.15
+    benchmark: "ICE U.S. Treasury 20+ Year Bond Index"
+    description: "Long-duration U.S. Treasury exposure"
+    inception: "2002-07-22"
+  HYG:
+    name: "iShares iBoxx $ High Yield Corporate Bond ETF"
+    sector: "Fixed Income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.48
+    benchmark: "Markit iBoxx USD Liquid High Yield Index"
+    description: "High-yield corporate bonds with liquidity screen"
+    inception: "2007-04-04"
+  LQD:
+    name: "iShares iBoxx $ Investment Grade Corporate Bond ETF"
+    sector: "Fixed Income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.14
+    benchmark: "Markit iBoxx USD Liquid Investment Grade Index"
+    description: "Long investment-grade corporate bonds"
+    inception: "2002-07-22"
+  DIA:
+    name: "SPDR Dow Jones Industrial Average ETF Trust"
+    sector: "Broad Market"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.16
+    benchmark: "Dow Jones Industrial Average"
+    description: "Price-weighted U.S. blue chips"
+    inception: "1998-01-13"
+  IWM:
+    name: "iShares Russell 2000 ETF"
+    sector: "Broad Market"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.19
+    benchmark: "Russell 2000 Index"
+    description: "Small-cap U.S. equity exposure"
+    inception: "2000-05-22"
