@@ -21,7 +21,17 @@ def plot_correlation_heatmap(
     cmap: str = "RdBu_r",
     metadata: pd.DataFrame | None = None,
 ) -> plt.Figure:
-    """Plot a report-ready correlation heatmap with optional sector ordering."""
+    """Plot a correlation heatmap optionally grouped by sector metadata.
+
+    Parameters
+    ----------
+    corr
+        Correlation matrix (square DataFrame).
+    lower_triangle / mask_diagonal
+        Control masking so that only the lower half is displayed for readability.
+    metadata
+        Optional ticker metadata with a ``sector`` column used to cluster labels.
+    """
 
     if corr.empty:
         raise ValueError("corr is empty; nothing to plot")
@@ -109,7 +119,7 @@ def plot_correlation_clustermap(
     output_path: Path | None = None,
     cmap: str = "RdBu_r",
 ) -> sns.matrix.ClusterGrid:
-    """Render a seaborn clustermap to highlight correlated clusters."""
+    """Render a seaborn clustermap to highlight correlated ETF clusters."""
 
     # Use a slightly larger figure and adjust dendrogram ratio for clarity
     grid = sns.clustermap(
@@ -168,7 +178,7 @@ def plot_pair_bucket_counts(
     *,
     output_path: Path | None = None,
 ) -> plt.Figure:
-    """Bar chart showing how many high-corr pairs fall in each bucket."""
+    """Bar chart showing how many high-correlation pairs fall in each bucket."""
 
     count_df = (
         pairs_df["pair_bucket"].value_counts().rename_axis("pair_bucket").reset_index(name="pairs")
@@ -201,7 +211,7 @@ def plot_pair_bucket_boxplot(
     *,
     output_path: Path | None = None,
 ) -> plt.Figure:
-    """Boxplot comparing correlation distributions per bucket."""
+    """Boxplot comparing the correlation distributions for each bucket."""
 
     fig, ax = plt.subplots(figsize=(7, 4))
     sns.boxplot(

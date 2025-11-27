@@ -16,18 +16,17 @@ import pandas as pd
 
 
 def compute_return_correlations(returns_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Compute the correlation matrix of daily returns.
+    """Return the Pearson correlation matrix for aligned return series.
 
     Parameters
     ----------
     returns_df : pd.DataFrame
-        DataFrame of daily returns (tickers as columns).
+        Clean daily returns with tickers as columns and aligned index.
 
     Returns
     -------
     pd.DataFrame
-        Correlation matrix.
+        Symmetric correlation matrix with the same ticker order as ``returns_df``.
     """
     return returns_df.corr()
 
@@ -37,23 +36,20 @@ def find_high_corr_pairs(
     threshold: float = 0.8,
     metadata: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    """
-    Identify pairs with correlation above a specified threshold.
+    """Enumerate ticker pairs whose absolute correlation exceeds ``threshold``.
 
-    Parameters
-    ----------
-    corr_matrix : pd.DataFrame
-        Correlation matrix of returns.
-    threshold : float, optional
-        Minimum absolute correlation to consider a pair "highly correlated", by default 0.8.
-    metadata : pd.DataFrame | None, optional
-        DataFrame containing 'ticker' and 'sector' columns. If provided,
-        adds sector information and 'pair_bucket' (Same Sector vs Different Sector).
+    corr_matrix
+        Square correlation matrix whose columns are treated as tickers.
+    threshold
+        Minimum absolute correlation to keep a pair (default: 0.8).
+    metadata
+        Optional metadata containing sector labels; when provided a ``pair_bucket``
+        column ("Same Sector" vs "Cross Sector") is added to the result.
 
     Returns
     -------
     pd.DataFrame
-        DataFrame with columns ['leg_x', 'leg_y', 'correlation', 'pair_bucket', ...].
+        Sorted dataframe describing each qualifying pair and its correlation.
     """
     tickers = corr_matrix.columns
     pairs_data = []
@@ -121,7 +117,11 @@ def attach_sector_labels(
 
 
 def summarise_pairs_by_bucket(pairs_df: pd.DataFrame) -> pd.DataFrame:
-    """Return counts and correlation stats per pair bucket."""
+    """Summarise correlation distribution for each ``pair_bucket``.
+
+    Returns a tidy dataframe with counts and descriptive statistics so downstream
+    reporting (markdown/CSV) can reuse the same aggregate view.
+    """
 
     if pairs_df.empty:
         return pd.DataFrame(columns=["n_pairs", "mean", "min", "max"])

@@ -1,6 +1,6 @@
 """Smoke tests for data download utilities."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import os
 
 import pytest
@@ -16,7 +16,7 @@ def test_download_single_ticker_smoke() -> None:
     config = load_yaml_config("configs/data.yaml")
     ticker = config["universe"]["etfs"][0]
 
-    end_date = datetime.utcnow().date()
+    end_date = datetime.now(UTC).date()
     start_date = (end_date - timedelta(days=365)).isoformat()
 
     df = download_etf_data([ticker], start=start_date, end=end_date.isoformat())

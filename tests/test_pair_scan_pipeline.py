@@ -131,6 +131,35 @@ def test_run_pair_scan_same_sector_only(tmp_path: Path) -> None:
     assert unique_pairs == {("AAA", "BBB")}
 
 
+def test_run_pair_scan_keeps_all_pairs_when_max_pairs_none(tmp_path: Path) -> None:
+    prices = _synthetic_prices()
+    price_path = tmp_path / "prices.csv"
+    prices.to_csv(price_path)
+
+    tickers = ["AAA", "BBB", "CCC"]
+    metadata_path = _build_metadata(tmp_path, tickers)
+    config_path = _build_config(tmp_path, metadata_path, tickers)
+
+    cfg = PairScanConfig(
+        config_path=config_path,
+        price_path=price_path,
+        output_path=None,
+        list_name=None,
+        metadata_path=metadata_path,
+        lookback_days=None,
+        min_obs=150,
+        min_corr=-1.0,
+        max_pairs=None,
+        engle_granger_maxlag=1,
+        allow_cross_sector=True,
+    )
+
+    df = run_pair_scan(cfg)
+
+    expected_pairs = len(tickers) * (len(tickers) - 1) // 2
+    assert len(df) == expected_pairs
+
+
 def test_run_pair_scan_drops_missing_tickers(tmp_path: Path) -> None:
     prices = _synthetic_prices()
     price_path = tmp_path / "prices.csv"
