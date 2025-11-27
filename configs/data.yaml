@@ -30,13 +30,35 @@ universe:
     - LQD
     - DIA
     - IWM
+    - XLRE
+    - VGT
+    - VHT
+    - VDE
+    - VNQ
+    - VOO
+    - IVV
+    - SCHG
+    - SCHV
+    - IWF
+    - IWD
+    - MDY
+    - SPLV
+    - VEA
+    - VWO
+    - VGK
+    - EWJ
+    - FXI
+    - EWW
+    - ILF
+    - AGG
+    - BND
 
   # Named lists let us quickly pivot between different universes without
   # editing notebooks. The default list is used by helper utilities.
   default_list: "core_sectors"
   lists:
     core_sectors:
-      description: "Large, liquid U.S. sector ETFs spanning tech, financials, energy, discretionary"
+      description: "Large, liquid U.S. cross-sector and style ETFs spanning equities, international beta, and core bonds"
       sectors:
         - "Technology"
         - "Financials"
@@ -45,6 +67,13 @@ universe:
         - "Health Care"
         - "Industrials"
         - "Consumer Staples"
+        - "Materials"
+        - "Communication Services"
+        - "Utilities"
+        - "Real Estate"
+        - "Broad Market"
+        - "International"
+        - "Fixed Income"
       tickers:
         - XLK
         - IYW
@@ -74,6 +103,28 @@ universe:
         - LQD
         - DIA
         - IWM
+        - XLRE
+        - VGT
+        - VHT
+        - VDE
+        - VNQ
+        - VOO
+        - IVV
+        - SCHG
+        - SCHV
+        - IWF
+        - IWD
+        - MDY
+        - SPLV
+        - VEA
+        - VWO
+        - VGK
+        - EWJ
+        - FXI
+        - EWW
+        - ILF
+        - AGG
+        - BND
       allow_cross_sector: false
     tech_financial_pairs:
       description: "Focused slice for finance vs tech relative value tests"
@@ -87,7 +138,7 @@ universe:
         - VFH
       allow_cross_sector: true
     extended_market:
-      description: "Adds defensive and broad-market ETFs for cross-sector stress tests"
+      description: "Adds defensive, international, and rate-sensitive ETFs for cross-sector stress tests"
       sectors:
         - "Technology"
         - "Financials"
@@ -98,6 +149,11 @@ universe:
         - "Consumer Staples"
         - "Materials"
         - "Broad Market"
+        - "Communication Services"
+        - "Utilities"
+        - "Real Estate"
+        - "International"
+        - "Fixed Income"
       tickers:
         - XLK
         - IYW
@@ -127,6 +183,28 @@ universe:
         - LQD
         - DIA
         - IWM
+        - XLRE
+        - VGT
+        - VHT
+        - VDE
+        - VNQ
+        - VOO
+        - IVV
+        - SCHG
+        - SCHV
+        - IWF
+        - IWD
+        - MDY
+        - SPLV
+        - VEA
+        - VWO
+        - VGK
+        - EWJ
+        - FXI
+        - EWW
+        - ILF
+        - AGG
+        - BND
       allow_cross_sector: true
     defensive_vs_growth:
       description: "Pairs growth-heavy ETFs against defensives to test cross-sector cointegration"
@@ -159,7 +237,8 @@ pair_scan:
   allow_cross_sector: true
   lookback_days: 252
   min_obs: 180
-  min_corr: 0.85
+  min_corr: 0.80
   max_pairs: null       # Use null to keep every scored pair
   engle_granger_maxlag: 1
   return_method: "log"
+  use_log: true         # Apply log() to prices before Engle-Granger test

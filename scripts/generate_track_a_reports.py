@@ -72,7 +72,7 @@ def generate_cointegration_json():
     print(f"Saved {out_path}")
 
 def plot_overlays():
-    """Generate overlay plots for top 3 pairs."""
+    """Generate overlay plots for top 5 cointegrated pairs."""
     scores_path = RESULTS_DIR / "week1_pair_scores.csv"
     price_path = project_root / "data" / "raw" / "etf_prices.csv"
     
@@ -80,23 +80,29 @@ def plot_overlays():
         return
 
     scores = pd.read_csv(scores_path)
-    top_3 = scores.head(3)
+    # Filter for cointegrated pairs (p <= 0.05), sorted by p-value
+    coint_pairs = scores[scores["coint_pvalue"] <= 0.05].sort_values("coint_pvalue")
+    top_5 = coint_pairs.head(5)
+    
+    if top_5.empty:
+        print("No cointegrated pairs found for overlay plots.")
+        return
     
     # Load prices
-    tickers = set(top_3["leg_x"]).union(set(top_3["leg_y"]))
+    tickers = set(top_5["leg_x"]).union(set(top_5["leg_y"]))
     pf = build_price_frame(price_path, tickers=list(tickers))
     prices = pf.prices
     
     # Normalize to 100
     normalized = prices / prices.iloc[0] * 100
     
-    for i, row in top_3.iterrows():
+    for i, row in top_5.iterrows():
         leg_x = row["leg_x"]
         leg_y = row["leg_y"]
         
         fig, ax = plt.subplots(figsize=(10, 6))
         normalized[[leg_x, leg_y]].plot(ax=ax)
-        ax.set_title(f"Price Overlay: {leg_x} vs {leg_y} (Corr: {row['correlation']:.2f})")
+        ax.set_title(f"Price Overlay: {leg_x} vs {leg_y} (p-value: {row['coint_pvalue']:.2e})")
         ax.set_ylabel("Normalized Price (Base=100)")
         
         out_path = FIGURES_DIR / f"overlay_{leg_x}_{leg_y}.png"
@@ -123,12 +129,12 @@ def generate_summary_md():
 - **Cointegrated Pairs (p < 0.05)**: {n_coint}
 
 ## Methodology
-1. **Universe**: Sector ETFs downloaded from Yahoo Finance.
-2. **Correlation**: Calculated rolling correlations; filtered for pairs > 0.85.
+1. **Universe**: 50 cross-sector ETFs (equity, international, and core bonds) downloaded from Yahoo Finance.
+2. **Correlation**: Calculated rolling correlations; filtered for pairs > 0.80.
 3. **Cointegration**: Engle-Granger test applied to high-correlation pairs.
 
 ## Top Findings
-The top 3 most correlated pairs were analyzed for price divergence.
+The top 5 cointegrated pairs were analyzed for price divergence.
 See `results/figures/` for overlay plots.
 
 ## Next Steps
