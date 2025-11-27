@@ -37,11 +37,12 @@ class PairScanConfig:
     metadata_path: Path | None = None
     lookback_days: int | None = 252
     min_obs: int = 126
-    min_corr: float = 0.85
+    min_corr: float = 0.80
     max_pairs: int | None = None
     return_method: str = "log"
     engle_granger_maxlag: int = 1
     allow_cross_sector: bool = True
+    use_log: bool = True
 
 
 def _load_universe(cfg: PairScanConfig) -> ETFUniverse:
@@ -111,7 +112,7 @@ def run_pair_scan(cfg: PairScanConfig) -> pd.DataFrame:
         lookback=None,
         max_pairs=cfg.max_pairs,
         run_cointegration=True,
-        engle_granger_kwargs={"maxlag": cfg.engle_granger_maxlag},
+        engle_granger_kwargs={"maxlag": cfg.engle_granger_maxlag, "use_log": cfg.use_log},
     )
 
     scores = _filter_sector_pairs(scores, universe, allow_cross_sector=cfg.allow_cross_sector)
@@ -135,7 +136,7 @@ def main() -> None:
     parser.add_argument("--metadata", type=Path, default=None, help="Optional metadata YAML override")
     parser.add_argument("--lookback", type=int, default=252, help="Rows of history used for scoring")
     parser.add_argument("--min-obs", type=int, default=126, help="Minimum overlapping observations per pair")
-    parser.add_argument("--min-corr", type=float, default=0.85, help="Minimum return correlation threshold")
+    parser.add_argument("--min-corr", type=float, default=0.80, help="Minimum return correlation threshold")
     parser.add_argument(
         "--max-pairs",
         type=_parse_max_pairs,

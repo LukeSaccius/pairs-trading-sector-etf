@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Mapping, Sequence
 
 import pandas as pd
 
 from pairs_trading_etf.cointegration.engle_granger import EngleGrangerResult, run_engle_granger
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -76,7 +79,7 @@ def _engle_granger_fields(result: EngleGrangerResult | None) -> dict[str, float 
 def score_pairs(
     prices: pd.DataFrame,
     min_obs: int = 252,
-    min_corr: float = 0.85,
+    min_corr: float = 0.80,
     lookback: int | None = None,
     max_pairs: int | None = None,
     run_cointegration: bool = True,
@@ -102,15 +105,23 @@ def score_pairs(
 
     granger_kwargs = dict(engle_granger_kwargs or {})
 
+    # Diagnostic counters
+    min_obs_fails = 0
+    min_corr_fails = 0
+    eg_fails = 0
+    pvalues: list[float] = []
+
     scored: list[PairScore] = []
     for leg_x, leg_y in candidates:
         pair_returns = returns[[leg_x, leg_y]].dropna()
         n_obs = pair_returns.shape[0]
         if n_obs < min_obs:
+            min_obs_fails += 1
             continue
 
         corr = pair_returns[leg_x].corr(pair_returns[leg_y])
         if pd.isna(corr) or corr < min_corr:
+            min_corr_fails += 1
             continue
 
         pair_prices = prices[[leg_x, leg_y]].loc[pair_returns.index].dropna()
@@ -120,7 +131,11 @@ def score_pairs(
                 eg_result = run_engle_granger(
                     pair_prices[leg_x], pair_prices[leg_y], **granger_kwargs
                 )
-            except ValueError:
+                if eg_result is not None:
+                    pvalues.append(eg_result.pvalue)
+            except ValueError as exc:
+                logger.debug("Engle-Granger failed for %s-%s: %s", leg_x, leg_y, exc)
+                eg_fails += 1
                 continue
 
         fields = _engle_granger_fields(eg_result)
@@ -132,6 +147,28 @@ def score_pairs(
                 n_obs=int(n_obs),
                 **fields,
             )
+        )
+
+    # Log diagnostic summary
+    logger.info(
+        "score_pairs: %d candidates | min_obs_fails=%d | min_corr_fails=%d | eg_fails=%d | scored=%d",
+        len(candidates),
+        min_obs_fails,
+        min_corr_fails,
+        eg_fails,
+        len(scored),
+    )
+    if pvalues:
+        import numpy as np
+        pv_arr = np.array(pvalues)
+        logger.info(
+            "p-value distribution: min=%.4f, median=%.4f, mean=%.4f, max=%.4f, <=0.05: %d/%d",
+            pv_arr.min(),
+            np.median(pv_arr),
+            pv_arr.mean(),
+            pv_arr.max(),
+            int((pv_arr <= 0.05).sum()),
+            len(pv_arr),
         )
 
     def _sort_key(item: PairScore) -> tuple[float, float]:

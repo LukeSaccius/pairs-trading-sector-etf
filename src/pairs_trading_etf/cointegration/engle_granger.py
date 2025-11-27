@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Mapping
 
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.stattools import coint
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -68,11 +71,40 @@ def run_engle_granger(
     maxlag: int = 1,
     trend: str = "c",
     autolag: str = "aic",
+    use_log: bool = True,
 ) -> EngleGrangerResult:
-    """Execute the Engle-Granger two-step test for a pair of price series."""
+    """Execute the Engle-Granger two-step test for a pair of price series.
+
+    Parameters
+    ----------
+    series_x, series_y : pd.Series
+        Price series for the two legs of the pair.
+    maxlag : int
+        Maximum lag for ADF test inside statsmodels coint.
+    trend : str
+        Trend specification passed to coint ('c', 'ct', 'ctt', 'n').
+    autolag : str
+        Lag selection method ('aic', 'bic', 't-stat', None).
+    use_log : bool
+        If True, apply natural log to prices before testing. Recommended for
+        scale invariance and alignment with standard stat-arb practice.
+    """
 
     aligned_x, aligned_y = _align_series(series_x, series_y)
+
+    if use_log:
+        aligned_x = np.log(aligned_x.where(aligned_x > 0)).replace([np.inf, -np.inf], np.nan).dropna()
+        aligned_y = np.log(aligned_y.where(aligned_y > 0)).replace([np.inf, -np.inf], np.nan).dropna()
+        # Re-align after log transform in case any rows were dropped
+        aligned_x, aligned_y = _align_series(aligned_x, aligned_y)
+
     test_stat, pvalue, crit_values = coint(aligned_x, aligned_y, trend=trend, maxlag=maxlag, autolag=autolag)
+    logger.debug(
+        "Engle-Granger test: t-stat=%.3f, p=%.4f, use_log=%s",
+        test_stat,
+        pvalue,
+        use_log,
+    )
 
     hedge_ratio = float(np.polyfit(aligned_y, aligned_x, 1)[0])
     spread = aligned_x - hedge_ratio * aligned_y

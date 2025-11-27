@@ -252,3 +252,201 @@ etfs:
     benchmark: "Russell 2000 Index"
     description: "Small-cap U.S. equity exposure"
     inception: "2000-05-22"
+  XLRE:
+    name: "Real Estate Select Sector SPDR Fund"
+    sector: "Real Estate"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.10
+    benchmark: "Real Estate Select Sector Index"
+    description: "Cap-weighted portfolio of U.S. equity REITs"
+    inception: "2015-10-07"
+  VGT:
+    name: "Vanguard Information Technology ETF"
+    sector: "Technology"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.10
+    benchmark: "MSCI US Investable Market Information Technology 25/50 Index"
+    description: "Market-cap weighted exposure to U.S. technology equities"
+    inception: "2004-01-26"
+  VHT:
+    name: "Vanguard Health Care ETF"
+    sector: "Health Care"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.10
+    benchmark: "MSCI US Investable Market Health Care 25/50 Index"
+    description: "Broad-based U.S. health care equities"
+    inception: "2004-01-26"
+  VDE:
+    name: "Vanguard Energy ETF"
+    sector: "Energy"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.10
+    benchmark: "MSCI US Investable Market Energy 25/50 Index"
+    description: "Market-cap weighted energy producers and service firms"
+    inception: "2004-09-23"
+  VNQ:
+    name: "Vanguard Real Estate ETF"
+    sector: "Real Estate"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.12
+    benchmark: "MSCI US Investable Market Real Estate 25/50 Index"
+    description: "Diversified equity REIT exposure across property types"
+    inception: "2004-09-23"
+  VOO:
+    name: "Vanguard S&P 500 ETF"
+    sector: "Broad Market"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.03
+    benchmark: "S&P 500 Index"
+    description: "Low-cost core exposure to the S&P 500"
+    inception: "2010-09-07"
+  IVV:
+    name: "iShares Core S&P 500 ETF"
+    sector: "Broad Market"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.03
+    benchmark: "S&P 500 Index"
+    description: "Core S&P 500 coverage with strong liquidity"
+    inception: "2000-05-15"
+  SCHG:
+    name: "Schwab U.S. Large-Cap Growth ETF"
+    sector: "Broad Market"
+    region: "US"
+    issuer: "Charles Schwab"
+    expense_ratio: 0.04
+    benchmark: "Dow Jones U.S. Large-Cap Growth Total Stock Market Index"
+    description: "Large-cap growth allocation tilted toward tech and consumer names"
+    inception: "2009-12-11"
+  SCHV:
+    name: "Schwab U.S. Large-Cap Value ETF"
+    sector: "Broad Market"
+    region: "US"
+    issuer: "Charles Schwab"
+    expense_ratio: 0.04
+    benchmark: "Dow Jones U.S. Large-Cap Value Total Stock Market Index"
+    description: "Large-cap value tilt emphasizing financials and industrials"
+    inception: "2009-12-11"
+  IWF:
+    name: "iShares Russell 1000 Growth ETF"
+    sector: "Broad Market"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.18
+    benchmark: "Russell 1000 Growth Index"
+    description: "Large-cap growth exposure with Russell methodology"
+    inception: "2000-05-22"
+  IWD:
+    name: "iShares Russell 1000 Value ETF"
+    sector: "Broad Market"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.19
+    benchmark: "Russell 1000 Value Index"
+    description: "Large-cap value basket complementing IWF"
+    inception: "2000-05-22"
+  MDY:
+    name: "SPDR S&P MidCap 400 ETF Trust"
+    sector: "Broad Market"
+    region: "US"
+    issuer: "State Street Global Advisors"
+    expense_ratio: 0.23
+    benchmark: "S&P MidCap 400 Index"
+    description: "Mid-cap exposure tracking the S&P 400"
+    inception: "1995-05-04"
+  SPLV:
+    name: "Invesco S&P 500 Low Volatility ETF"
+    sector: "Broad Market"
+    region: "US"
+    issuer: "Invesco"
+    expense_ratio: 0.25
+    benchmark: "S&P 500 Low Volatility Index"
+    description: "Defensive tilt focusing on the 100 least volatile S&P names"
+    inception: "2011-05-05"
+  VEA:
+    name: "Vanguard FTSE Developed Markets ETF"
+    sector: "International"
+    region: "International"
+    issuer: "Vanguard"
+    expense_ratio: 0.05
+    benchmark: "FTSE Developed All Cap ex US Index"
+    description: "Broad developed-market equities excluding the U.S."
+    inception: "2007-07-20"
+  VWO:
+    name: "Vanguard FTSE Emerging Markets ETF"
+    sector: "International"
+    region: "Global"
+    issuer: "Vanguard"
+    expense_ratio: 0.08
+    benchmark: "FTSE Emerging Markets All Cap China A Inclusion Index"
+    description: "Diversified emerging-markets equity exposure"
+    inception: "2005-03-04"
+  VGK:
+    name: "Vanguard FTSE Europe ETF"
+    sector: "International"
+    region: "International"
+    issuer: "Vanguard"
+    expense_ratio: 0.08
+    benchmark: "FTSE Developed Europe All Cap Index"
+    description: "Developed Europe heavyweights across sectors"
+    inception: "2005-03-04"
+  EWJ:
+    name: "iShares MSCI Japan ETF"
+    sector: "International"
+    region: "Japan"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI Japan Index"
+    description: "Large- and mid-cap Japanese equities"
+    inception: "1996-03-12"
+  FXI:
+    name: "iShares China Large-Cap ETF"
+    sector: "International"
+    region: "China"
+    issuer: "BlackRock"
+    expense_ratio: 0.74
+    benchmark: "FTSE China 50 Index"
+    description: "Concentrated exposure to Hong Kong-listed Chinese large caps"
+    inception: "2004-10-05"
+  EWW:
+    name: "iShares MSCI Mexico ETF"
+    sector: "International"
+    region: "Mexico"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI Mexico IMI 25/50 Index"
+    description: "Single-country access to Mexican equities"
+    inception: "1996-03-12"
+  ILF:
+    name: "iShares Latin America 40 ETF"
+    sector: "International"
+    region: "Latin America"
+    issuer: "BlackRock"
+    expense_ratio: 0.49
+    benchmark: "S&P Latin America 40 Index"
+    description: "Large-cap basket across Brazil, Mexico, Chile, and Peru"
+    inception: "2001-10-26"
+  AGG:
+    name: "iShares Core U.S. Aggregate Bond ETF"
+    sector: "Fixed Income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.03
+    benchmark: "Bloomberg U.S. Aggregate Bond Index"
+    description: "Investment-grade U.S. bond market proxy"
+    inception: "2003-09-22"
+  BND:
+    name: "Vanguard Total Bond Market ETF"
+    sector: "Fixed Income"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.03
+    benchmark: "Bloomberg U.S. Aggregate Float Adjusted Index"
+    description: "Broad investment-grade bond exposure"
+    inception: "2007-04-03"
