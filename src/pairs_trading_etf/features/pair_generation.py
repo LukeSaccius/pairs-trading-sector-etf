@@ -41,7 +41,7 @@ class PairScore:
 
 
 def enumerate_pairs(tickers: Sequence[str]) -> list[tuple[str, str]]:
-    """Enumerate unique unordered ticker combinations."""
+    """Enumerate unique unordered ticker combinations in uppercase form."""
 
     cleaned = [str(t).strip().upper() for t in tickers]
     pairs: list[tuple[str, str]] = []
@@ -52,6 +52,7 @@ def enumerate_pairs(tickers: Sequence[str]) -> list[tuple[str, str]]:
 
 
 def _engle_granger_fields(result: EngleGrangerResult | None) -> dict[str, float | None]:
+    """Extract spread/cointegration metrics from an Engle–Granger result object."""
     if result is None:
         return {
             "spread_mean": None,
@@ -81,7 +82,7 @@ def score_pairs(
     run_cointegration: bool = True,
     engle_granger_kwargs: Mapping[str, object] | None = None,
 ) -> list[PairScore]:
-    """Rank ETF pairs by correlation and optional Engle-Granger p-values."""
+    """Rank ETF pairs by correlation strength and Engle–Granger diagnostics."""
 
     if prices.empty:
         return []

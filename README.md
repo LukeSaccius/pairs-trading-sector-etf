@@ -23,6 +23,10 @@ pytest tests/  # optional smoke checks
 jupyter notebook notebooks/week1_data_cointegration.ipynb
 ```
 
+### Pair Scan CLI
+- Run `python -m pairs_trading_etf.pipelines.pair_scan --max-pairs none` to rank every valid pair.
+- Any integer passed to `--max-pairs` keeps just the top N; omitting or using `none`/`all` leaves results untrimmed.
+
 ## 1. Overview *(Core)*
 - Purpose of the six-week research sprint
 - High-level description of the pairs trading methodology and success metrics

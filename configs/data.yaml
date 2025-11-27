@@ -160,6 +160,6 @@ pair_scan:
   lookback_days: 252
   min_obs: 180
   min_corr: 0.85
-  max_pairs: 75
+  max_pairs: null       # Use null to keep every scored pair
   engle_granger_maxlag: 1
   return_method: "log"

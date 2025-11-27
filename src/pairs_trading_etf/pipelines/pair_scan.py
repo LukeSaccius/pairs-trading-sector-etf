@@ -17,8 +17,19 @@ DEFAULT_PRICE_PATH = Path("data/raw/etf_prices.csv")
 DEFAULT_OUTPUT_PATH = Path("results/pair_scan_candidates.csv")
 
 
+def _parse_max_pairs(value: str) -> int | None:
+    """Allow CLI users to pass ``none`` to keep every scored pair."""
+    if value is None:
+        return None
+    normalized = value.strip().lower()
+    if normalized in {"none", "all"}:
+        return None
+    return int(value)
+
+
 @dataclass(slots=True)
 class PairScanConfig:
+    """Typed configuration for the pair-scan pipeline."""
     config_path: Path = DEFAULT_CONFIG_PATH
     price_path: Path = DEFAULT_PRICE_PATH
     output_path: Path | None = DEFAULT_OUTPUT_PATH
@@ -27,13 +38,14 @@ class PairScanConfig:
     lookback_days: int | None = 252
     min_obs: int = 126
     min_corr: float = 0.85
-    max_pairs: int | None = 10
+    max_pairs: int | None = None
     return_method: str = "log"
     engle_granger_maxlag: int = 1
     allow_cross_sector: bool = True
 
 
 def _load_universe(cfg: PairScanConfig) -> ETFUniverse:
+    """Load the ETF universe (+metadata) defined in ``cfg``."""
     return load_configured_universe(
         cfg.config_path,
         list_name=cfg.list_name,
@@ -42,6 +54,7 @@ def _load_universe(cfg: PairScanConfig) -> ETFUniverse:
 
 
 def _load_prices(cfg: PairScanConfig, tickers: Sequence[str]) -> PriceFrame:
+    """Fetch and optionally truncate the price frame used for scoring."""
     frame = build_price_frame(
         cfg.price_path,
         tickers=tickers,
@@ -55,6 +68,7 @@ def _load_prices(cfg: PairScanConfig, tickers: Sequence[str]) -> PriceFrame:
 
 
 def pair_scores_to_frame(scores: Sequence[PairScore], universe_name: str) -> pd.DataFrame:
+    """Convert ``PairScore`` objects into a dataframe annotated with universe name."""
     rows = []
     for score in scores:
         record = {"universe": universe_name, **score.as_dict()}
@@ -65,6 +79,7 @@ def pair_scores_to_frame(scores: Sequence[PairScore], universe_name: str) -> pd.
 def _filter_sector_pairs(
     scores: Sequence[PairScore], universe: ETFUniverse, allow_cross_sector: bool
 ) -> list[PairScore]:
+    """Optionally restrict scores to same-sector pairs when metadata allows."""
     if allow_cross_sector:
         return list(scores)
 
@@ -85,6 +100,7 @@ def _filter_sector_pairs(
 
 
 def run_pair_scan(cfg: PairScanConfig) -> pd.DataFrame:
+    """Execute the full pair scoring pipeline and return a dataframe of candidates."""
     universe = _load_universe(cfg)
     frame = _load_prices(cfg, tickers=universe.tickers)
 
@@ -120,7 +136,12 @@ def main() -> None:
     parser.add_argument("--lookback", type=int, default=252, help="Rows of history used for scoring")
     parser.add_argument("--min-obs", type=int, default=126, help="Minimum overlapping observations per pair")
     parser.add_argument("--min-corr", type=float, default=0.85, help="Minimum return correlation threshold")
-    parser.add_argument("--max-pairs", type=int, default=10, help="Maximum number of pairs to keep")
+    parser.add_argument(
+        "--max-pairs",
+        type=_parse_max_pairs,
+        default=None,
+        help="Maximum number of pairs to keep (use 'none' to keep all)",
+    )
     parser.add_argument("--maxlag", type=int, default=1, help="Max lag for Engle-Granger test")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT_PATH, help="Where to persist CSV results")
     parser.add_argument(
