@@ -1,0 +1,232 @@
+leg_x,leg_y,correlation,pair_bucket,corr_threshold_used,sector_x,sector_y
+VOO,IVV,0.9993838436602511,Same Sector,0.8,Broad Market,Broad Market
+SPY,IVV,0.9991653681544151,Same Sector,0.8,Broad Market,Broad Market
+VOO,SPY,0.9991135630093211,Same Sector,0.8,Broad Market,Broad Market
+XLE,VDE,0.9963877623223246,Same Sector,0.8,Energy,Energy
+EFA,VEA,0.9957410506869984,Cross Sector,0.8,Broad Market,International
+IWF,SCHG,0.9949015191362044,Same Sector,0.8,Broad Market,Broad Market
+IWD,SCHV,0.9938444182211421,Same Sector,0.8,Broad Market,Broad Market
+VGT,XLK,0.9938083685244362,Same Sector,0.8,Technology,Technology
+VFH,XLF,0.9934317447784842,Same Sector,0.8,Financials,Financials
+VGT,IYW,0.9917375805339448,Same Sector,0.8,Technology,Technology
+EEM,VWO,0.9916011688381712,Cross Sector,0.8,Broad Market,International
+SOXX,SMH,0.9895176703689033,Same Sector,0.8,Technology,Technology
+VHT,XLV,0.9877126729346415,Same Sector,0.8,Health Care,Health Care
+XLK,IYW,0.9876651353371241,Same Sector,0.8,Technology,Technology
+QQQ,IYW,0.9831704156623721,Same Sector,0.8,Technology,Technology
+IWF,QQQ,0.9813333741901225,Cross Sector,0.8,Broad Market,Technology
+EFA,VGK,0.9793956789867205,Cross Sector,0.8,Broad Market,International
+VGT,QQQ,0.9775382276550441,Same Sector,0.8,Technology,Technology
+SCHG,QQQ,0.9773913473688092,Cross Sector,0.8,Broad Market,Technology
+VNQ,XLRE,0.9758414700686122,Same Sector,0.8,Real Estate,Real Estate
+VEA,VGK,0.9741449891660965,Same Sector,0.8,International,International
+QQQ,XLK,0.9737009247601336,Same Sector,0.8,Technology,Technology
+IWF,VGT,0.9734472542483912,Cross Sector,0.8,Broad Market,Technology
+IWF,IYW,0.9702147055042061,Cross Sector,0.8,Broad Market,Technology
+IWF,XLK,0.9692055882418862,Cross Sector,0.8,Broad Market,Technology
+SCHG,VGT,0.9686424909784115,Cross Sector,0.8,Broad Market,Technology
+SCHG,IYW,0.967174430620452,Cross Sector,0.8,Broad Market,Technology
+SCHV,DIA,0.9659669446444691,Same Sector,0.8,Broad Market,Broad Market
+MDY,IWM,0.9640312680916426,Same Sector,0.8,Broad Market,Broad Market
+XHB,ITB,0.9628229950440759,Same Sector,0.8,Consumer Discretionary,Consumer Discretionary
+SCHG,XLK,0.9625237618100457,Cross Sector,0.8,Broad Market,Technology
+IWD,DIA,0.9618740857331094,Same Sector,0.8,Broad Market,Broad Market
+SPY,IWF,0.9616412359467897,Same Sector,0.8,Broad Market,Broad Market
+IVV,IWF,0.9607238569589193,Same Sector,0.8,Broad Market,Broad Market
+VOO,IWF,0.9607006260148108,Same Sector,0.8,Broad Market,Broad Market
+SPY,SCHG,0.9564975160212108,Same Sector,0.8,Broad Market,Broad Market
+BND,AGG,0.9561339232381503,Same Sector,0.8,Fixed Income,Fixed Income
+IVV,DIA,0.9556361293394229,Same Sector,0.8,Broad Market,Broad Market
+IVV,SCHG,0.9556139535427032,Same Sector,0.8,Broad Market,Broad Market
+VOO,SCHG,0.9555243359075916,Same Sector,0.8,Broad Market,Broad Market
+VOO,DIA,0.955498211389752,Same Sector,0.8,Broad Market,Broad Market
+SPY,DIA,0.9542051674248139,Same Sector,0.8,Broad Market,Broad Market
+VOO,SCHV,0.9457031378859366,Same Sector,0.8,Broad Market,Broad Market
+IVV,SCHV,0.9454026541277365,Same Sector,0.8,Broad Market,Broad Market
+IWD,MDY,0.9445551568927204,Same Sector,0.8,Broad Market,Broad Market
+SPY,SCHV,0.9440670070724738,Same Sector,0.8,Broad Market,Broad Market
+VOO,IWD,0.9419226006275948,Same Sector,0.8,Broad Market,Broad Market
+IVV,IWD,0.9417027656044824,Same Sector,0.8,Broad Market,Broad Market
+SPY,IWD,0.9405139530260017,Same Sector,0.8,Broad Market,Broad Market
+IWD,XLI,0.9370299059059441,Cross Sector,0.8,Broad Market,Industrials
+IWD,VFH,0.9361598050860169,Cross Sector,0.8,Broad Market,Financials
+SCHV,MDY,0.9355868878044826,Same Sector,0.8,Broad Market,Broad Market
+SCHV,XLI,0.9352066981228965,Cross Sector,0.8,Broad Market,Industrials
+IWD,XLF,0.9327484456123106,Cross Sector,0.8,Broad Market,Financials
+DIA,XLI,0.9293583618366541,Cross Sector,0.8,Broad Market,Industrials
+SPY,QQQ,0.9291551948199694,Cross Sector,0.8,Broad Market,Technology
+SPY,XLK,0.928008660503635,Cross Sector,0.8,Broad Market,Technology
+IVV,QQQ,0.9279357506037326,Cross Sector,0.8,Broad Market,Technology
+VOO,QQQ,0.927897939052376,Cross Sector,0.8,Broad Market,Technology
+SPY,VGT,0.927479655992175,Cross Sector,0.8,Broad Market,Technology
+VOO,XLK,0.927412410385916,Cross Sector,0.8,Broad Market,Technology
+IVV,XLK,0.9273634803992108,Cross Sector,0.8,Broad Market,Technology
+VOO,VGT,0.926550612203265,Cross Sector,0.8,Broad Market,Technology
+IVV,VGT,0.9262569481911315,Cross Sector,0.8,Broad Market,Technology
+SCHV,VFH,0.9259917524226857,Cross Sector,0.8,Broad Market,Financials
+VDE,XOP,0.9246366601009307,Same Sector,0.8,Energy,Energy
+SCHV,XLF,0.9238013547813103,Cross Sector,0.8,Broad Market,Financials
+MDY,XLI,0.9140772001244741,Cross Sector,0.8,Broad Market,Industrials
+SPY,IYW,0.9130910031586912,Cross Sector,0.8,Broad Market,Technology
+VOO,IYW,0.9120474728888343,Cross Sector,0.8,Broad Market,Technology
+IVV,IYW,0.9117901168644281,Cross Sector,0.8,Broad Market,Technology
+SCHG,XLY,0.9107510322373297,Cross Sector,0.8,Broad Market,Consumer Discretionary
+IWF,XLY,0.9100260065034417,Cross Sector,0.8,Broad Market,Consumer Discretionary
+IVV,MDY,0.9098557106614104,Same Sector,0.8,Broad Market,Broad Market
+VOO,MDY,0.9097390856222506,Same Sector,0.8,Broad Market,Broad Market
+XLE,XOP,0.9095758597882864,Same Sector,0.8,Energy,Energy
+SPY,MDY,0.9093589515752968,Same Sector,0.8,Broad Market,Broad Market
+DIA,MDY,0.9030105931086806,Same Sector,0.8,Broad Market,Broad Market
+SPY,XLY,0.9014843241473874,Cross Sector,0.8,Broad Market,Consumer Discretionary
+MDY,VFH,0.90069919656097,Cross Sector,0.8,Broad Market,Financials
+IVV,XLY,0.8998544820887929,Cross Sector,0.8,Broad Market,Consumer Discretionary
+VOO,XLY,0.8994706875343038,Cross Sector,0.8,Broad Market,Consumer Discretionary
+DIA,XLF,0.8978024322421969,Cross Sector,0.8,Broad Market,Financials
+IWD,XLB,0.8957767265002793,Cross Sector,0.8,Broad Market,Materials
+XLC,QQQ,0.8953015772086326,Cross Sector,0.8,Communication Services,Technology
+DIA,VFH,0.8948750257444305,Cross Sector,0.8,Broad Market,Financials
+VGT,SOXX,0.8933353007644265,Same Sector,0.8,Technology,Technology
+IVV,XLI,0.8925405068415767,Cross Sector,0.8,Broad Market,Industrials
+SPY,XLI,0.8923893187315548,Cross Sector,0.8,Broad Market,Industrials
+VGT,SMH,0.8923283257385913,Same Sector,0.8,Technology,Technology
+VOO,XLI,0.8920414204963956,Cross Sector,0.8,Broad Market,Industrials
+SCHG,XLC,0.8905975167781515,Cross Sector,0.8,Broad Market,Communication Services
+SCHV,XLB,0.8894356591003338,Cross Sector,0.8,Broad Market,Materials
+XLY,QQQ,0.8887022989392347,Cross Sector,0.8,Consumer Discretionary,Technology
+IYW,SMH,0.8877730718428486,Same Sector,0.8,Technology,Technology
+IWD,IWM,0.8874274673057062,Same Sector,0.8,Broad Market,Broad Market
+IYW,SOXX,0.8872636891814295,Same Sector,0.8,Technology,Technology
+IWF,XLC,0.88697923906801,Cross Sector,0.8,Broad Market,Communication Services
+SCHV,SPLV,0.8850447186504976,Same Sector,0.8,Broad Market,Broad Market
+XLK,SOXX,0.8848989007380628,Same Sector,0.8,Technology,Technology
+XLK,SMH,0.8848275993852411,Same Sector,0.8,Technology,Technology
+VFH,XLI,0.8805918861735272,Cross Sector,0.8,Financials,Industrials
+XLI,XLB,0.8791601103246223,Cross Sector,0.8,Industrials,Materials
+XLC,IYW,0.8786585567277062,Cross Sector,0.8,Communication Services,Technology
+MDY,XLF,0.8781662145275455,Cross Sector,0.8,Broad Market,Financials
+XLF,XLI,0.8757331481952116,Cross Sector,0.8,Financials,Industrials
+SCHV,IWM,0.8747860584422644,Same Sector,0.8,Broad Market,Broad Market
+MDY,XLB,0.8735059132968754,Cross Sector,0.8,Broad Market,Materials
+IWD,SPLV,0.8713965206950727,Same Sector,0.8,Broad Market,Broad Market
+LQD,BND,0.8702306514472866,Same Sector,0.8,Fixed Income,Fixed Income
+SPY,XLC,0.8702042790372726,Cross Sector,0.8,Broad Market,Communication Services
+SPLV,XLP,0.869652257690742,Cross Sector,0.8,Broad Market,Consumer Staples
+VOO,XLC,0.8682917779370714,Cross Sector,0.8,Broad Market,Communication Services
+IVV,XLC,0.8682680854453267,Cross Sector,0.8,Broad Market,Communication Services
+QQQ,SOXX,0.8680481938632479,Same Sector,0.8,Technology,Technology
+SPY,IWM,0.8666067133009693,Same Sector,0.8,Broad Market,Broad Market
+QQQ,SMH,0.866226842244546,Same Sector,0.8,Technology,Technology
+IVV,IWM,0.865419976500848,Same Sector,0.8,Broad Market,Broad Market
+VOO,IWM,0.8650794774766786,Same Sector,0.8,Broad Market,Broad Market
+DIA,IWF,0.86479522400755,Same Sector,0.8,Broad Market,Broad Market
+DIA,SPLV,0.8629009525000609,Same Sector,0.8,Broad Market,Broad Market
+SPY,VEA,0.8628980295352716,Cross Sector,0.8,Broad Market,International
+IWD,VEA,0.8628031048742902,Cross Sector,0.8,Broad Market,International
+IVV,VEA,0.8626356367498642,Cross Sector,0.8,Broad Market,International
+VOO,VEA,0.8623198965948904,Cross Sector,0.8,Broad Market,International
+DIA,XLB,0.8615812596941462,Cross Sector,0.8,Broad Market,Materials
+MDY,XHB,0.8595381089242817,Cross Sector,0.8,Broad Market,Consumer Discretionary
+XLY,VGT,0.8567937107264257,Cross Sector,0.8,Consumer Discretionary,Technology
+SCHV,VEA,0.8567351250008548,Cross Sector,0.8,Broad Market,International
+DIA,SCHG,0.8562062916482588,Same Sector,0.8,Broad Market,Broad Market
+IVV,VFH,0.8551840966192281,Cross Sector,0.8,Broad Market,Financials
+IWM,XLI,0.8549271124874185,Cross Sector,0.8,Broad Market,Industrials
+VOO,VFH,0.8548053092709567,Cross Sector,0.8,Broad Market,Financials
+IVV,XLF,0.8547596503493433,Cross Sector,0.8,Broad Market,Financials
+VOO,XLF,0.8545237283045883,Cross Sector,0.8,Broad Market,Financials
+SPY,EFA,0.8544143982739434,Same Sector,0.8,Broad Market,Broad Market
+IVV,EFA,0.8539934931517709,Same Sector,0.8,Broad Market,Broad Market
+SPY,VFH,0.8537892806305536,Cross Sector,0.8,Broad Market,Financials
+VOO,EFA,0.853585664566311,Same Sector,0.8,Broad Market,Broad Market
+SPY,XLF,0.8533187393833438,Cross Sector,0.8,Broad Market,Financials
+IWD,EFA,0.8532238662084682,Same Sector,0.8,Broad Market,Broad Market
+IWM,VFH,0.8529187054031723,Cross Sector,0.8,Broad Market,Financials
+VHT,IBB,0.8502802924510747,Same Sector,0.8,Health Care,Health Care
+LQD,AGG,0.8489276143709539,Same Sector,0.8,Fixed Income,Fixed Income
+DIA,VEA,0.8485808278430521,Cross Sector,0.8,Broad Market,International
+VWO,FXI,0.848466436792679,Same Sector,0.8,International,International
+SPY,XLB,0.8483764888199705,Cross Sector,0.8,Broad Market,Materials
+VOO,XLB,0.8483011873285844,Cross Sector,0.8,Broad Market,Materials
+IVV,XLB,0.8482316458216795,Cross Sector,0.8,Broad Market,Materials
+SCHV,EFA,0.8479205797039158,Same Sector,0.8,Broad Market,Broad Market
+VEA,EWJ,0.847888174108721,Same Sector,0.8,International,International
+XLY,IYW,0.8473107407493049,Cross Sector,0.8,Consumer Discretionary,Technology
+IWF,SOXX,0.847119090119647,Cross Sector,0.8,Broad Market,Technology
+EFA,EWJ,0.8467807823070423,Cross Sector,0.8,Broad Market,International
+IWF,SMH,0.8465309201687965,Cross Sector,0.8,Broad Market,Technology
+XLC,VGT,0.8462332570010435,Cross Sector,0.8,Communication Services,Technology
+EEM,VEA,0.8461127549573254,Cross Sector,0.8,Broad Market,International
+XLY,XLK,0.8457482961545867,Cross Sector,0.8,Consumer Discretionary,Technology
+DIA,IWM,0.8446003083023821,Same Sector,0.8,Broad Market,Broad Market
+EEM,FXI,0.8438024764630465,Cross Sector,0.8,Broad Market,International
+SCHG,SOXX,0.8436282499523239,Cross Sector,0.8,Broad Market,Technology
+VOO,VHT,0.8429759423038369,Cross Sector,0.8,Broad Market,Health Care
+SCHG,SMH,0.8429105175007079,Cross Sector,0.8,Broad Market,Technology
+VOO,SPLV,0.8428348364168112,Same Sector,0.8,Broad Market,Broad Market
+MDY,XLY,0.842753126153376,Cross Sector,0.8,Broad Market,Consumer Discretionary
+IVV,VHT,0.8424835307600151,Cross Sector,0.8,Broad Market,Health Care
+IVV,SPLV,0.8418304126147015,Same Sector,0.8,Broad Market,Broad Market
+SPY,VHT,0.8417440808253748,Cross Sector,0.8,Broad Market,Health Care
+MDY,VEA,0.8416947573838809,Cross Sector,0.8,Broad Market,International
+XLC,XLK,0.8415365530878754,Cross Sector,0.8,Communication Services,Technology
+DIA,EFA,0.8401051045341876,Same Sector,0.8,Broad Market,Broad Market
+SPY,SPLV,0.8375238981248518,Same Sector,0.8,Broad Market,Broad Market
+VEA,VWO,0.8363966366085976,Same Sector,0.8,International,International
+DIA,XLY,0.83283062546738,Cross Sector,0.8,Broad Market,Consumer Discretionary
+DIA,XLK,0.8323173922806406,Cross Sector,0.8,Broad Market,Technology
+AGG,TLT,0.8311445567871486,Same Sector,0.8,Fixed Income,Fixed Income
+MDY,EFA,0.8301415191675601,Same Sector,0.8,Broad Market,Broad Market
+EFA,EEM,0.8297720228262299,Same Sector,0.8,Broad Market,Broad Market
+MDY,IWF,0.8274188569673483,Same Sector,0.8,Broad Market,Broad Market
+IWD,VGK,0.826983789556831,Cross Sector,0.8,Broad Market,International
+SCHV,IWF,0.8269699924110209,Same Sector,0.8,Broad Market,Broad Market
+MDY,SCHG,0.826434847366574,Same Sector,0.8,Broad Market,Broad Market
+DIA,VGT,0.8264024458443434,Cross Sector,0.8,Broad Market,Technology
+IWM,XLY,0.8250754896118936,Cross Sector,0.8,Broad Market,Consumer Discretionary
+IWM,XLF,0.8248328432801666,Cross Sector,0.8,Broad Market,Financials
+IWM,XHB,0.8248192727670582,Cross Sector,0.8,Broad Market,Consumer Discretionary
+VOO,XLV,0.8245899696241886,Cross Sector,0.8,Broad Market,Health Care
+IVV,XLV,0.8242042796511148,Cross Sector,0.8,Broad Market,Health Care
+SPY,XLV,0.8232109014639043,Cross Sector,0.8,Broad Market,Health Care
+VEA,XLB,0.8228286019370795,Cross Sector,0.8,International,Materials
+EFA,VWO,0.8226393094261275,Cross Sector,0.8,Broad Market,International
+SPY,VGK,0.822364546701818,Cross Sector,0.8,Broad Market,International
+IVV,VGK,0.8222011584332495,Cross Sector,0.8,Broad Market,International
+DIA,VHT,0.8220301552302788,Cross Sector,0.8,Broad Market,Health Care
+VOO,VGK,0.8215971932097836,Cross Sector,0.8,Broad Market,International
+VFH,XLB,0.8203463001098478,Cross Sector,0.8,Financials,Materials
+SCHV,VGK,0.820310906103588,Cross Sector,0.8,Broad Market,International
+IWD,IWF,0.8194150262824367,Same Sector,0.8,Broad Market,Broad Market
+SPLV,XLRE,0.8188464755163918,Cross Sector,0.8,Broad Market,Real Estate
+SCHV,VHT,0.8176184864456209,Cross Sector,0.8,Broad Market,Health Care
+SPLV,XLU,0.8172390795302561,Cross Sector,0.8,Broad Market,Utilities
+SCHV,SCHG,0.8171855247438993,Same Sector,0.8,Broad Market,Broad Market
+XLF,XLB,0.8170430160617282,Cross Sector,0.8,Financials,Materials
+XLC,XLY,0.816822482410832,Cross Sector,0.8,Communication Services,Consumer Discretionary
+DIA,QQQ,0.8167037219376286,Cross Sector,0.8,Broad Market,Technology
+DIA,XLV,0.8166753634951232,Cross Sector,0.8,Broad Market,Health Care
+XLI,VEA,0.8164425812260964,Cross Sector,0.8,Industrials,International
+SPLV,VNQ,0.8159995028444018,Cross Sector,0.8,Broad Market,Real Estate
+IWD,SCHG,0.8158219109814434,Same Sector,0.8,Broad Market,Broad Market
+IWM,XLB,0.8147229899817682,Cross Sector,0.8,Broad Market,Materials
+SPY,SOXX,0.8145963744095567,Cross Sector,0.8,Broad Market,Technology
+IWD,VHT,0.8140883166177191,Cross Sector,0.8,Broad Market,Health Care
+IVV,SOXX,0.8131922558300102,Cross Sector,0.8,Broad Market,Technology
+VOO,SOXX,0.8131466567574817,Cross Sector,0.8,Broad Market,Technology
+DIA,VGK,0.8123214279092478,Cross Sector,0.8,Broad Market,International
+SCHV,XLV,0.8116321177535887,Cross Sector,0.8,Broad Market,Health Care
+EFA,XLB,0.8113927379016568,Cross Sector,0.8,Broad Market,Materials
+SCHV,XLY,0.8109688848982167,Cross Sector,0.8,Broad Market,Consumer Discretionary
+IWD,XLY,0.8094194817022237,Cross Sector,0.8,Broad Market,Consumer Discretionary
+SPY,SMH,0.8075308751700621,Cross Sector,0.8,Broad Market,Technology
+EFA,XLI,0.8065941650602515,Cross Sector,0.8,Broad Market,Industrials
+MDY,VGK,0.8059163390658497,Cross Sector,0.8,Broad Market,International
+VOO,SMH,0.8059113022140711,Cross Sector,0.8,Broad Market,Technology
+IVV,SMH,0.805895247903854,Cross Sector,0.8,Broad Market,Technology
+SCHG,IWM,0.8057924902569046,Same Sector,0.8,Broad Market,Broad Market
+IWD,XLV,0.8054234316004726,Cross Sector,0.8,Broad Market,Health Care
+IWF,IWM,0.8040763340598651,Same Sector,0.8,Broad Market,Broad Market
+SPLV,XLV,0.8023065672066262,Cross Sector,0.8,Broad Market,Health Care
+SPLV,XLI,0.801161348206896,Cross Sector,0.8,Broad Market,Industrials
+IWM,VEA,0.8006758017194783,Cross Sector,0.8,Broad Market,International
+DIA,IYW,0.8001576747415179,Cross Sector,0.8,Broad Market,Technology
