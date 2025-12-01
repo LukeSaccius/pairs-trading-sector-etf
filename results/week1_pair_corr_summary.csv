@@ -1,0 +1,3 @@
+pair_bucket,n_pairs,mean,min,max
+Cross Sector,47,0.892,0.8,0.994
+Same Sector,55,0.93,0.805,0.999

@@ -7,8 +7,5 @@ Thumbs.db
 .env
 .env.*
 *.env
-/data/raw/
-/data/processed/
-/results/
-/reports/
 notes/*.tmp
+
