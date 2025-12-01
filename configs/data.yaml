@@ -242,3 +242,12 @@ pair_scan:
   engle_granger_maxlag: 1
   return_method: "log"
   use_log: true         # Apply log() to prices before Engle-Granger test
+
+johansen:
+  # Parameters for Johansen basket cointegration scanner
+  min_basket_size: 3      # Minimum number of ETFs in a basket
+  max_basket_size: 4      # Maximum number of ETFs (5 is expensive: C(50,5)=2M combos)
+  det_order: 0            # Deterministic trend: -1=none, 0=constant, 1=constant+trend
+  k_ar_diff: 1            # Lagged differences in VECM
+  min_corr_prefilter: 0.70  # Skip baskets with avg pairwise corr below this
+  max_baskets: 50         # Maximum baskets to keep (ranked by score)

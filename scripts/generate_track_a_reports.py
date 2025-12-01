@@ -102,7 +102,7 @@ def plot_overlays():
         
         fig, ax = plt.subplots(figsize=(10, 6))
         normalized[[leg_x, leg_y]].plot(ax=ax)
-        ax.set_title(f"Price Overlay: {leg_x} vs {leg_y} (p-value: {row['coint_pvalue']:.2e})")
+        ax.set_title(f"Price Overlay: {leg_x} vs {leg_y} (Corr: {row['correlation']:.3f})")
         ax.set_ylabel("Normalized Price (Base=100)")
         
         out_path = FIGURES_DIR / f"overlay_{leg_x}_{leg_y}.png"
