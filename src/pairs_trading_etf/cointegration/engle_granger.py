@@ -107,6 +107,8 @@ def run_engle_granger(
     )
 
     hedge_ratio = float(np.polyfit(aligned_y, aligned_x, 1)[0])
+    # Spread is computed on log prices (if use_log=True was set earlier)
+    # aligned_x and aligned_y are already log-transformed at this point
     spread = aligned_x - hedge_ratio * aligned_y
     half_life = _estimate_half_life(spread)
 
