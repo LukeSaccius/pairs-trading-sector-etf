@@ -22,6 +22,7 @@ class ETFMetadata:
     benchmark: str | None = None
     description: str | None = None
     inception: str | None = None
+    tracks_index: str | None = None
 
     @classmethod
     def from_mapping(cls, ticker: str, payload: Mapping[str, Any]) -> "ETFMetadata":
@@ -41,6 +42,7 @@ class ETFMetadata:
             benchmark=payload.get("benchmark"),
             description=payload.get("description"),
             inception=payload.get("inception"),
+            tracks_index=payload.get("tracks_index"),
         )
 
 
@@ -93,6 +95,7 @@ class ETFUniverse:
                         "benchmark": meta.benchmark,
                         "description": meta.description,
                         "inception": meta.inception,
+                        "tracks_index": meta.tracks_index,
                     }
                 )
             records.append(record)

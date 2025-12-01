@@ -99,6 +99,7 @@ etfs:
     benchmark: "S&P 500 Index"
     description: "Flagship U.S. large-cap benchmark ETF used as core beta"
     inception: "1993-01-22"
+    tracks_index: "sp500"
   QQQ:
     name: "Invesco QQQ Trust"
     sector: "Technology"
@@ -108,6 +109,7 @@ etfs:
     benchmark: "Nasdaq-100 Index"
     description: "Growth-oriented exposure to non-financial Nasdaq-100 constituents"
     inception: "1999-03-10"
+    tracks_index: "nasdaq100"
   XLU:
     name: "Utilities Select Sector SPDR Fund"
     sector: "Utilities"
@@ -171,6 +173,7 @@ etfs:
     benchmark: "MVIS US Listed Semiconductor 25 Index"
     description: "Concentrated U.S.-listed semiconductor manufacturers"
     inception: "2000-12-20"
+    tracks_index: "semiconductors"
   SOXX:
     name: "iShares Semiconductor ETF"
     sector: "Technology"
@@ -180,6 +183,7 @@ etfs:
     benchmark: "ICE Semiconductor Index"
     description: "Liquidity-weighted semiconductor exposure"
     inception: "2001-07-10"
+    tracks_index: "semiconductors"
   IBB:
     name: "iShares Biotechnology ETF"
     sector: "Health Care"
@@ -198,6 +202,7 @@ etfs:
     benchmark: "MSCI Emerging Markets Index"
     description: "Diversified large/mid EM equities"
     inception: "2003-04-07"
+    tracks_index: "emerging_markets"
   EFA:
     name: "iShares MSCI EAFE ETF"
     sector: "Broad Market"
@@ -207,6 +212,7 @@ etfs:
     benchmark: "MSCI EAFE Index"
     description: "Developed ex-US large/mid caps"
     inception: "2001-08-14"
+    tracks_index: "developed_intl"
   TLT:
     name: "iShares 20+ Year Treasury Bond ETF"
     sector: "Fixed Income"
@@ -261,6 +267,7 @@ etfs:
     benchmark: "Real Estate Select Sector Index"
     description: "Cap-weighted portfolio of U.S. equity REITs"
     inception: "2015-10-07"
+    tracks_index: "us_reits"
   VGT:
     name: "Vanguard Information Technology ETF"
     sector: "Technology"
@@ -297,6 +304,7 @@ etfs:
     benchmark: "MSCI US Investable Market Real Estate 25/50 Index"
     description: "Diversified equity REIT exposure across property types"
     inception: "2004-09-23"
+    tracks_index: "us_reits"
   VOO:
     name: "Vanguard S&P 500 ETF"
     sector: "Broad Market"
@@ -306,6 +314,7 @@ etfs:
     benchmark: "S&P 500 Index"
     description: "Low-cost core exposure to the S&P 500"
     inception: "2010-09-07"
+    tracks_index: "sp500"
   IVV:
     name: "iShares Core S&P 500 ETF"
     sector: "Broad Market"
@@ -315,6 +324,7 @@ etfs:
     benchmark: "S&P 500 Index"
     description: "Core S&P 500 coverage with strong liquidity"
     inception: "2000-05-15"
+    tracks_index: "sp500"
   SCHG:
     name: "Schwab U.S. Large-Cap Growth ETF"
     sector: "Broad Market"
@@ -378,6 +388,7 @@ etfs:
     benchmark: "FTSE Developed All Cap ex US Index"
     description: "Broad developed-market equities excluding the U.S."
     inception: "2007-07-20"
+    tracks_index: "developed_intl"
   VWO:
     name: "Vanguard FTSE Emerging Markets ETF"
     sector: "International"
@@ -387,6 +398,7 @@ etfs:
     benchmark: "FTSE Emerging Markets All Cap China A Inclusion Index"
     description: "Diversified emerging-markets equity exposure"
     inception: "2005-03-04"
+    tracks_index: "emerging_markets"
   VGK:
     name: "Vanguard FTSE Europe ETF"
     sector: "International"
@@ -441,6 +453,7 @@ etfs:
     benchmark: "Bloomberg U.S. Aggregate Bond Index"
     description: "Investment-grade U.S. bond market proxy"
     inception: "2003-09-22"
+    tracks_index: "agg_bond"
   BND:
     name: "Vanguard Total Bond Market ETF"
     sector: "Fixed Income"
@@ -450,3 +463,4 @@ etfs:
     benchmark: "Bloomberg U.S. Aggregate Float Adjusted Index"
     description: "Broad investment-grade bond exposure"
     inception: "2007-04-03"
+    tracks_index: "agg_bond"

@@ -43,6 +43,8 @@ class PairScanConfig:
     engle_granger_maxlag: int = 1
     allow_cross_sector: bool = True
     use_log: bool = True
+    exclude_same_index: bool = True
+    max_corr: float = 0.95
 
 
 def _load_universe(cfg: PairScanConfig) -> ETFUniverse:
@@ -68,11 +70,15 @@ def _load_prices(cfg: PairScanConfig, tickers: Sequence[str]) -> PriceFrame:
     return frame
 
 
-def pair_scores_to_frame(scores: Sequence[PairScore], universe_name: str) -> pd.DataFrame:
+def pair_scores_to_frame(
+    scores: Sequence[PairScore], 
+    universe_name: str,
+    excluded_reason: str | None = None
+) -> pd.DataFrame:
     """Convert ``PairScore`` objects into a dataframe annotated with universe name."""
     rows = []
     for score in scores:
-        record = {"universe": universe_name, **score.as_dict()}
+        record = {"universe": universe_name, **score.as_dict(), "excluded_reason": excluded_reason}
         rows.append(record)
     return pd.DataFrame(rows)
 
@@ -100,6 +106,59 @@ def _filter_sector_pairs(
     return filtered
 
 
+def _filter_same_index_pairs(
+    scores: Sequence[PairScore], universe: ETFUniverse
+) -> tuple[list[PairScore], list[tuple[PairScore, str]]]:
+    """Remove pairs where both ETFs track the same underlying index.
+    
+    Returns:
+        Tuple of (kept_scores, excluded_pairs_with_reason)
+    """
+    metadata = universe.metadata or {}
+    if not metadata:
+        return list(scores), []
+
+    index_lookup = {
+        ticker.upper(): meta.tracks_index 
+        for ticker, meta in metadata.items() 
+        if meta.tracks_index is not None
+    }
+    
+    kept: list[PairScore] = []
+    excluded: list[tuple[PairScore, str]] = []
+    
+    for score in scores:
+        idx_x = index_lookup.get(score.leg_x)
+        idx_y = index_lookup.get(score.leg_y)
+        
+        if idx_x is not None and idx_y is not None and idx_x == idx_y:
+            excluded.append((score, f"same_index:{idx_x}"))
+        else:
+            kept.append(score)
+    
+    return kept, excluded
+
+
+def _filter_high_correlation_pairs(
+    scores: Sequence[PairScore], max_corr: float
+) -> tuple[list[PairScore], list[tuple[PairScore, str]]]:
+    """Remove pairs with correlation above threshold (likely duplicates).
+    
+    Returns:
+        Tuple of (kept_scores, excluded_pairs_with_reason)
+    """
+    kept: list[PairScore] = []
+    excluded: list[tuple[PairScore, str]] = []
+    
+    for score in scores:
+        if score.correlation > max_corr:
+            excluded.append((score, f"high_corr:{score.correlation:.4f}"))
+        else:
+            kept.append(score)
+    
+    return kept, excluded
+
+
 def run_pair_scan(cfg: PairScanConfig) -> pd.DataFrame:
     """Execute the full pair scoring pipeline and return a dataframe of candidates."""
     universe = _load_universe(cfg)
@@ -117,7 +176,37 @@ def run_pair_scan(cfg: PairScanConfig) -> pd.DataFrame:
 
     scores = _filter_sector_pairs(scores, universe, allow_cross_sector=cfg.allow_cross_sector)
 
-    result_df = pair_scores_to_frame(scores, universe_name=universe.name)
+    # Apply duplicate filters and track excluded pairs
+    all_excluded: list[tuple[PairScore, str]] = []
+    
+    # Filter by same index tracking
+    if cfg.exclude_same_index:
+        scores, excluded_index = _filter_same_index_pairs(scores, universe)
+        all_excluded.extend(excluded_index)
+    
+    # Filter by high correlation (likely same holdings)
+    if cfg.max_corr < 1.0:
+        scores, excluded_corr = _filter_high_correlation_pairs(scores, cfg.max_corr)
+        all_excluded.extend(excluded_corr)
+
+    # Build result DataFrame with kept pairs (excluded_reason = None)
+    result_df = pair_scores_to_frame(scores, universe_name=universe.name, excluded_reason=None)
+    
+    # Add excluded pairs with their reasons
+    if all_excluded:
+        excluded_rows = []
+        for score, reason in all_excluded:
+            record = {"universe": universe.name, **score.as_dict(), "excluded_reason": reason}
+            excluded_rows.append(record)
+        excluded_df = pd.DataFrame(excluded_rows)
+        result_df = pd.concat([result_df, excluded_df], ignore_index=True)
+        
+        # Re-sort: non-excluded first (by pvalue), then excluded
+        result_df["_sort_key"] = result_df["excluded_reason"].notna().astype(int)
+        result_df = result_df.sort_values(
+            ["_sort_key", "coint_pvalue", "correlation"], 
+            ascending=[True, True, False]
+        ).drop(columns=["_sort_key"]).reset_index(drop=True)
 
     if cfg.output_path is not None:
         cfg.output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -150,6 +239,17 @@ def main() -> None:
         action="store_true",
         help="Restrict output to pairs where both legs share the same metadata sector",
     )
+    parser.add_argument(
+        "--no-exclude-same-index",
+        action="store_true",
+        help="Disable filtering of pairs that track the same underlying index",
+    )
+    parser.add_argument(
+        "--max-corr",
+        type=float,
+        default=0.95,
+        help="Maximum correlation threshold; pairs above this are flagged as duplicates (default: 0.95)",
+    )
 
     args = parser.parse_args()
 
@@ -165,6 +265,8 @@ def main() -> None:
         max_pairs=args.max_pairs,
         engle_granger_maxlag=args.maxlag,
         allow_cross_sector=not args.same_sector_only,
+        exclude_same_index=not args.no_exclude_same_index,
+        max_corr=args.max_corr,
     )
 
     df = run_pair_scan(cfg)
