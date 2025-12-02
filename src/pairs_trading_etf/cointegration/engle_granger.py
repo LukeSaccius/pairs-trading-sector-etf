@@ -10,6 +10,9 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.stattools import coint
 
+# Import half-life estimation from dedicated module
+from pairs_trading_etf.ou_model.half_life import estimate_half_life
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,27 +45,6 @@ def _align_series(x: pd.Series, y: pd.Series) -> tuple[pd.Series, pd.Series]:
     if frame.shape[0] < 30:
         raise ValueError("Need at least 30 overlapping observations for Engle-Granger")
     return frame.iloc[:, 0], frame.iloc[:, 1]
-
-
-def _estimate_half_life(spread: pd.Series) -> float | None:
-    spread = spread.dropna()
-    if spread.shape[0] < 30:
-        return None
-
-    lagged = spread.shift(1).dropna()
-    delta = spread.diff().dropna()
-    aligned = pd.concat([lagged, delta], axis=1, join="inner").dropna()
-    if aligned.empty:
-        return None
-
-    # Simple OLS slope estimate without statsmodels dependency for speed.
-    x = aligned.iloc[:, 0].values
-    y = aligned.iloc[:, 1].values
-    beta = np.linalg.lstsq(x.reshape(-1, 1), y, rcond=None)[0][0]
-    if beta >= 0:
-        return None
-
-    return float(-np.log(2) / beta)
 
 
 def run_engle_granger(
@@ -110,7 +92,7 @@ def run_engle_granger(
     # Spread is computed on log prices (if use_log=True was set earlier)
     # aligned_x and aligned_y are already log-transformed at this point
     spread = aligned_x - hedge_ratio * aligned_y
-    half_life = _estimate_half_life(spread)
+    half_life = estimate_half_life(spread)
 
     return EngleGrangerResult(
         test_statistic=float(test_stat),

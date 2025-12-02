@@ -16,7 +16,9 @@ def test_load_yaml_config_returns_expected_sections() -> None:
 
     assert "universe" in config
     assert "data" in config
-    assert isinstance(config["universe"].get("etfs", []), list)
+    # Config uses categories structure - etfs can be None or list
+    universe = config["universe"]
+    assert "categories" in universe or universe.get("etfs") is not None
 
 
 def test_load_yaml_config_missing_file() -> None:

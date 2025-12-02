@@ -1,253 +1,111 @@
-# Universe configuration for ETF universe and ingestion parameters
-universe:
-  # Maintain backwards compatibility for earlier notebooks that expect `universe.etfs`
-  etfs:
-    - XLK
-    - IYW
-    - XLF
-    - VFH
-    - XLE
-    - XLY
-    - XLV
-    - XLI
-    - XLP
-    - XLB
-    - SPY
-    - QQQ
-    - XLU
-    - XLC
-    - XOP
-    - XME
-    - ITB
-    - XHB
-    - SMH
-    - SOXX
-    - IBB
-    - EEM
-    - EFA
-    - TLT
-    - HYG
-    - LQD
-    - DIA
-    - IWM
-    - XLRE
-    - VGT
-    - VHT
-    - VDE
-    - VNQ
-    - VOO
-    - IVV
-    - SCHG
-    - SCHV
-    - IWF
-    - IWD
-    - MDY
-    - SPLV
-    - VEA
-    - VWO
-    - VGK
-    - EWJ
-    - FXI
-    - EWW
-    - ILF
-    - AGG
-    - BND
+# Universe configuration for ETF pairs trading research
+# Expanded universe: ~140 liquid ETFs across sectors, factors, fixed income, international
+# Updated: 2025-12-01
 
-  # Named lists let us quickly pivot between different universes without
-  # editing notebooks. The default list is used by helper utilities.
-  default_list: "core_sectors"
+universe:
+  # Structured ETF categories for easy maintenance
+  categories:
+    sector_spdrs:
+      description: "S&P 500 Sector Select SPDRs"
+      etfs: [XLK, XLF, XLE, XLY, XLV, XLI, XLP, XLB, XLU, XLC, XLRE]
+    
+    broad_market:
+      description: "Broad US equity market exposure"
+      etfs: [SPY, QQQ, DIA, IWM, IWB, VOO, IVV, VTI, MDY, IJH, IJR, RSP, OEF, VV, VB]
+    
+    factors:
+      description: "Factor-based ETFs (value, growth, momentum, quality, low vol, dividend)"
+      etfs: [VTV, VUG, IVE, IVW, SPYV, SPYG, IWF, IWD, MTUM, QUAL, USMV, SPLV, VLUE, SCHG, SCHV, VBR, VBK, DVY, VYM, SCHD]
+    
+    sector_variants:
+      description: "Sector-specific ETFs from various issuers"
+      etfs: [IYW, VGT, VFH, VHT, VDE, VNQ, IYR, XBI, IBB, XRT, XHB, ITB, KBE, KRE, IAI, SMH, SOXX, XOP, OIH, XME, GDX, GDXJ, ITA, XAR, IYT]
+    
+    fixed_income:
+      description: "US and international fixed income"
+      etfs: [TLT, IEF, IEI, SHY, GOVT, AGG, BND, LQD, VCIT, VCSH, HYG, JNK, SJNK, TIP, MUB, PFF, FLOT, BNDX, EMB, IGIB]
+    
+    international_developed:
+      description: "Developed markets ex-US"
+      etfs: [EFA, VEA, IEFA, VGK, FEZ, EZU, EWG, EWU, EWQ, EWI, EWP, EWL, EWN, EWJ, DXJ, EWA, EWC, EWH, EWS, EPP]
+    
+    emerging_markets:
+      description: "Emerging market equities"
+      etfs: [EEM, VWO, IEMG, FXI, MCHI, GXC, EWT, EWY, INDA, EPI, EWZ, EWW, ILF, TUR, EZA]
+    
+    commodities:
+      description: "Commodity exposure (physical, futures, miners)"
+      etfs: [GLD, IAU, SLV, DBC, DBA, USO, UNG, PDBC, MOO, COPX]
+
+  # Flat list for backward compatibility (auto-generated from categories)
+  etfs: null  # Will be computed at runtime
+
+  default_list: "full_universe"
+  
   lists:
-    core_sectors:
-      description: "Large, liquid U.S. cross-sector and style ETFs spanning equities, international beta, and core bonds"
-      sectors:
-        - "Technology"
-        - "Financials"
-        - "Energy"
-        - "Consumer Discretionary"
-        - "Health Care"
-        - "Industrials"
-        - "Consumer Staples"
-        - "Materials"
-        - "Communication Services"
-        - "Utilities"
-        - "Real Estate"
-        - "Broad Market"
-        - "International"
-        - "Fixed Income"
-      tickers:
-        - XLK
-        - IYW
-        - XLF
-        - VFH
-        - XLE
-        - XLY
-        - XLV
-        - XLI
-        - XLP
-        - XLB
-        - SPY
-        - QQQ
-        - XLU
-        - XLC
-        - XOP
-        - XME
-        - ITB
-        - XHB
-        - SMH
-        - SOXX
-        - IBB
-        - EEM
-        - EFA
-        - TLT
-        - HYG
-        - LQD
-        - DIA
-        - IWM
-        - XLRE
-        - VGT
-        - VHT
-        - VDE
-        - VNQ
-        - VOO
-        - IVV
-        - SCHG
-        - SCHV
-        - IWF
-        - IWD
-        - MDY
-        - SPLV
-        - VEA
-        - VWO
-        - VGK
-        - EWJ
-        - FXI
-        - EWW
-        - ILF
-        - AGG
-        - BND
-      allow_cross_sector: false
-    tech_financial_pairs:
-      description: "Focused slice for finance vs tech relative value tests"
-      sectors:
-        - "Technology"
-        - "Financials"
-      tickers:
-        - XLK
-        - IYW
-        - XLF
-        - VFH
+    full_universe:
+      description: "Full ~140 ETF universe for pairs trading research"
       allow_cross_sector: true
-    extended_market:
-      description: "Adds defensive, international, and rate-sensitive ETFs for cross-sector stress tests"
-      sectors:
-        - "Technology"
-        - "Financials"
-        - "Energy"
-        - "Consumer Discretionary"
-        - "Health Care"
-        - "Industrials"
-        - "Consumer Staples"
-        - "Materials"
-        - "Broad Market"
-        - "Communication Services"
-        - "Utilities"
-        - "Real Estate"
-        - "International"
-        - "Fixed Income"
-      tickers:
-        - XLK
-        - IYW
-        - XLF
-        - VFH
-        - XLE
-        - XLY
-        - XLV
-        - XLI
-        - XLP
-        - XLB
-        - SPY
-        - QQQ
-        - XLU
-        - XLC
-        - XOP
-        - XME
-        - ITB
-        - XHB
-        - SMH
-        - SOXX
-        - IBB
-        - EEM
-        - EFA
-        - TLT
-        - HYG
-        - LQD
-        - DIA
-        - IWM
-        - XLRE
-        - VGT
-        - VHT
-        - VDE
-        - VNQ
-        - VOO
-        - IVV
-        - SCHG
-        - SCHV
-        - IWF
-        - IWD
-        - MDY
-        - SPLV
-        - VEA
-        - VWO
-        - VGK
-        - EWJ
-        - FXI
-        - EWW
-        - ILF
-        - AGG
-        - BND
+      categories: [sector_spdrs, broad_market, factors, sector_variants, fixed_income, international_developed, emerging_markets, commodities]
+    
+    us_equity_only:
+      description: "US equity ETFs only (no international, no fixed income)"
       allow_cross_sector: true
-    defensive_vs_growth:
-      description: "Pairs growth-heavy ETFs against defensives to test cross-sector cointegration"
-      sectors:
-        - "Technology"
-        - "Consumer Discretionary"
-        - "Health Care"
-        - "Consumer Staples"
-      tickers:
-        - QQQ
-        - XLK
-        - XLY
-        - XLV
-        - XLP
+      categories: [sector_spdrs, broad_market, factors, sector_variants]
+    
+    liquid_core:
+      description: "Most liquid core ETFs for fast scanning"
       allow_cross_sector: true
+      etfs: [SPY, QQQ, IWM, EFA, EEM, TLT, GLD, XLK, XLF, XLE, XLV, XLI, XLP, XLB, XLU, VGK, EWJ, FXI, AGG, HYG]
+
+  # Data quality settings - easy to adjust
+  data_quality:
+    min_history_pct: 0.80  # Require 80% of date range to have data (can adjust to filter out XLC, XLRE)
+    exclude_etfs: []  # Can add ETFs to exclude here, e.g., ["XLC", "XLRE"] for incomplete history
 
 metadata:
   etf_info_path: "configs/etf_metadata.yaml"
 
 data:
-  start_date: "2014-01-01"  # Inclusive start date for historical download
-  end_date: "2024-12-31"    # Inclusive end date (adjust as research evolves)
-  source: "yahoo"           # Data provider identifier (currently yfinance)
-  frequency: "1d"           # Sampling frequency (1d daily bars for now)
+  start_date: "2014-01-01"
+  end_date: "2025-12-01"  # Updated to today
+  source: "yahoo"
+  frequency: "1d"
 
 pair_scan:
-  # Default parameters consumed by notebooks/pipelines; override via PairScanConfig if needed
-  list_name: "core_sectors"
-  use_full_universe: true
-  allow_cross_sector: true
-  lookback_days: 252
-  min_obs: 180
-  min_corr: 0.80
-  max_pairs: null       # Use null to keep every scored pair
+  # Production defaults (252-day rolling window)
+  # See: Gatev et al. (2006), Krauss (2017)
+  min_corr: 0.60
+  max_corr: 0.99
+  min_obs: 126
+  lookback_days: 252       # 1-year rolling (production default)
+  max_pairs: null
   engle_granger_maxlag: 1
-  return_method: "log"
-  use_log: true         # Apply log() to prices before Engle-Granger test
+  use_log: true
+  exclude_same_index: true
+  keep_excluded_pairs: true
+  n_jobs: null             # null = auto-detect CPU cores
+  
+  # Filtering thresholds
+  pvalue_threshold: 0.10
+  min_spread_range_pct: 8.0
+  min_half_life: 15
+  max_half_life: 120
+  
+  # Rolling consistency (recommended for production)
+  require_rolling_consistency: false
+  min_rolling_pct_significant: 0.70
+
+# Research mode: use full history for analysis
+pair_scan_research:
+  lookback_days: null      # Full 11-year history
+  max_half_life: 500       # Extended for research
+  require_rolling_consistency: false
 
 johansen:
-  # Parameters for Johansen basket cointegration scanner
-  min_basket_size: 3      # Minimum number of ETFs in a basket
-  max_basket_size: 4      # Maximum number of ETFs (5 is expensive: C(50,5)=2M combos)
-  det_order: 0            # Deterministic trend: -1=none, 0=constant, 1=constant+trend
-  k_ar_diff: 1            # Lagged differences in VECM
-  min_corr_prefilter: 0.70  # Skip baskets with avg pairwise corr below this
-  max_baskets: 50         # Maximum baskets to keep (ranked by score)
+  min_basket_size: 3
+  max_basket_size: 4
+  det_order: 0
+  k_ar_diff: 1
+  min_corr_prefilter: 0.70
+  max_baskets: 50

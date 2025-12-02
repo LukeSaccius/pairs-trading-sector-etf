@@ -24,6 +24,37 @@ class ETFMetadata:
     inception: str | None = None
     tracks_index: str | None = None
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert metadata to dictionary for serialization."""
+        return {
+            "ticker": self.ticker,
+            "name": self.name,
+            "sector": self.sector,
+            "region": self.region,
+            "issuer": self.issuer,
+            "expense_ratio": self.expense_ratio,
+            "benchmark": self.benchmark,
+            "description": self.description,
+            "inception": self.inception,
+            "tracks_index": self.tracks_index,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "ETFMetadata":
+        """Create ETFMetadata from dictionary."""
+        return cls(
+            ticker=data.get("ticker", ""),
+            name=data.get("name", ""),
+            sector=data.get("sector", "Unknown"),
+            region=data.get("region"),
+            issuer=data.get("issuer"),
+            expense_ratio=data.get("expense_ratio"),
+            benchmark=data.get("benchmark"),
+            description=data.get("description"),
+            inception=data.get("inception"),
+            tracks_index=data.get("tracks_index"),
+        )
+
     @classmethod
     def from_mapping(cls, ticker: str, payload: Mapping[str, Any]) -> "ETFMetadata":
         """Construct metadata from a mapping loaded from YAML."""
@@ -135,6 +166,39 @@ def load_etf_metadata(path: str | Path) -> Dict[str, ETFMetadata]:
     return metadata
 
 
+def _resolve_tickers_from_entry(
+    entry: Mapping[str, Any],
+    universe_cfg: Mapping[str, Any],
+) -> list[str]:
+    """Resolve tickers from a universe list entry.
+    
+    Handles direct `tickers`/`etfs` lists and `categories` references.
+    """
+    # Direct tickers/etfs list (support both keys for flexibility)
+    if "tickers" in entry and entry["tickers"]:
+        return list(entry["tickers"])
+    if "etfs" in entry and entry["etfs"]:
+        return list(entry["etfs"])
+    
+    # Category-based resolution
+    if "categories" in entry:
+        categories_cfg = universe_cfg.get("categories", {})
+        if not isinstance(categories_cfg, Mapping):
+            raise ConfigError("Universe 'categories' must be a mapping")
+        
+        tickers: list[str] = []
+        for cat_name in entry["categories"]:
+            cat = categories_cfg.get(cat_name)
+            if not isinstance(cat, Mapping):
+                raise ConfigError(f"Category '{cat_name}' not found or invalid")
+            cat_etfs = cat.get("etfs", [])
+            if cat_etfs:
+                tickers.extend(cat_etfs)
+        return tickers
+    
+    return []
+
+
 def resolve_universe(
     config: Mapping[str, Any],
     list_name: str | None = None,
@@ -153,7 +217,8 @@ def resolve_universe(
         entry = lists[selected_name]
         if not isinstance(entry, Mapping):
             raise ConfigError(f"Universe list '{selected_name}' must be a mapping")
-        tickers = _normalize_tickers(entry.get("tickers", []))
+        raw_tickers = _resolve_tickers_from_entry(entry, universe_cfg)
+        tickers = _normalize_tickers(raw_tickers)
         description = entry.get("description")
         sectors = tuple(entry.get("sectors", [])) or None
         universe = ETFUniverse(

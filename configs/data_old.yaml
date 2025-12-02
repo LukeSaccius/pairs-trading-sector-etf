@@ -1,0 +1,198 @@
+# Universe configuration for ETF pairs trading research
+# Expanded universe: ~150 liquid ETFs across sectors, factors, fixed income, international
+
+universe:
+  etfs:
+    # ===== SECTOR SPDRs (11) =====
+    - XLK   # Technology
+    - XLF   # Financials
+    - XLE   # Energy
+    - XLY   # Consumer Discretionary
+    - XLV   # Health Care
+    - XLI   # Industrials
+    - XLP   # Consumer Staples
+    - XLB   # Materials
+    - XLU   # Utilities
+    - XLC   # Communication Services
+    - XLRE  # Real Estate
+
+    # ===== BROAD MARKET (15) =====
+    - SPY   # S&P 500
+    - QQQ   # Nasdaq 100
+    - DIA   # Dow Jones
+    - IWM   # Russell 2000
+    - IWB   # Russell 1000
+    - VOO   # Vanguard S&P 500
+    - IVV   # iShares S&P 500
+    - VTI   # Total Stock Market
+    - MDY   # S&P MidCap 400
+    - IJH   # iShares MidCap
+    - IJR   # iShares SmallCap
+    - RSP   # Equal Weight S&P 500
+    - OEF   # S&P 100
+    - VV    # Vanguard Large Cap
+    - VB    # Vanguard Small Cap
+
+    # ===== FACTORS (20) =====
+    - VTV   # Value
+    - VUG   # Growth
+    - IVE   # S&P 500 Value
+    - IVW   # S&P 500 Growth
+    - SPYV  # SPDR Value
+    - SPYG  # SPDR Growth
+    - IWF   # Russell 1000 Growth
+    - IWD   # Russell 1000 Value
+    - MTUM  # Momentum
+    - QUAL  # Quality
+    - USMV  # Min Volatility
+    - SPLV  # Low Volatility
+    - VLUE  # Value Factor
+    - SCHG  # Schwab Growth
+    - SCHV  # Schwab Value
+    - VBR   # Small Cap Value
+    - VBK   # Small Cap Growth
+    - DVY   # Dividend Select
+    - VYM   # High Dividend
+    - SCHD  # Schwab Dividend
+
+    # ===== SECTOR VARIANTS (25) =====
+    - IYW   # iShares Tech
+    - VGT   # Vanguard Tech
+    - VFH   # Vanguard Financials
+    - VHT   # Vanguard Health
+    - VDE   # Vanguard Energy
+    - VNQ   # Vanguard REIT
+    - IYR   # iShares Real Estate
+    - XBI   # Biotech
+    - IBB   # iShares Biotech
+    - XRT   # Retail
+    - XHB   # Homebuilders
+    - ITB   # iShares Home Construction
+    - KBE   # Banks
+    - KRE   # Regional Banks
+    - IAI   # Broker-Dealers
+    - SMH   # Semiconductors
+    - SOXX  # iShares Semiconductors
+    - XOP   # Oil & Gas Exploration
+    - OIH   # Oil Services
+    - XME   # Metals & Mining
+    - GDX   # Gold Miners
+    - GDXJ  # Junior Gold Miners
+    - ITA   # Aerospace & Defense
+    - XAR   # SPDR Aerospace
+    - IYT   # Transportation
+
+    # ===== FIXED INCOME (20) =====
+    - TLT   # 20+ Year Treasury
+    - IEF   # 7-10 Year Treasury
+    - IEI   # 3-7 Year Treasury
+    - SHY   # 1-3 Year Treasury
+    - GOVT  # Total Treasury
+    - AGG   # Aggregate Bond
+    - BND   # Vanguard Total Bond
+    - LQD   # Investment Grade Corp
+    - VCIT  # Intermediate Corp
+    - VCSH  # Short Corp
+    - HYG   # High Yield Corp
+    - JNK   # SPDR High Yield
+    - SJNK  # Short High Yield
+    - TIP   # TIPS
+    - MUB   # Municipal
+    - PFF   # Preferreds
+    - FLOT  # Floating Rate
+    - BNDX  # Intl Bond
+    - EMB   # EM Bond
+    - IGIB  # 5-10Y Corp
+
+    # ===== INTERNATIONAL DEVELOPED (20) =====
+    - EFA   # EAFE
+    - VEA   # Vanguard EAFE
+    - IEFA  # iShares Core EAFE
+    - VGK   # Europe
+    - FEZ   # Euro Stoxx 50
+    - EZU   # Eurozone
+    - EWG   # Germany
+    - EWU   # UK
+    - EWQ   # France
+    - EWI   # Italy
+    - EWP   # Spain
+    - EWL   # Switzerland
+    - EWN   # Netherlands
+    - EWJ   # Japan
+    - DXJ   # Japan Hedged
+    - EWA   # Australia
+    - EWC   # Canada
+    - EWH   # Hong Kong
+    - EWS   # Singapore
+    - EPP   # Pacific ex-Japan
+
+    # ===== EMERGING MARKETS (15) =====
+    - EEM   # Emerging Markets
+    - VWO   # Vanguard EM
+    - IEMG  # iShares Core EM
+    - FXI   # China Large Cap
+    - MCHI  # MSCI China
+    - GXC   # China Total
+    - EWT   # Taiwan
+    - EWY   # South Korea
+    - INDA  # India
+    - EPI   # India Earnings
+    - EWZ   # Brazil
+    - EWW   # Mexico
+    - ILF   # Latin America
+    - TUR   # Turkey
+    - EZA   # South Africa
+
+    # ===== COMMODITIES (10) =====
+    - GLD   # Gold
+    - IAU   # iShares Gold
+    - SLV   # Silver
+    - DBC   # Commodities
+    - DBA   # Agriculture
+    - USO   # Oil
+    - UNG   # Natural Gas
+    - PDBC  # Optimum Commodity
+    - MOO   # Agribusiness
+    - COPX  # Copper Miners
+
+  default_list: "full_universe"
+  lists:
+    full_universe:
+      description: "Full ~150 ETF universe for pairs trading research"
+      allow_cross_sector: true
+      tickers: []  # Empty means use universe.etfs
+
+metadata:
+  etf_info_path: "configs/etf_metadata.yaml"
+
+data:
+  start_date: "2014-01-01"
+  end_date: "2024-12-31"
+  source: "yahoo"
+  frequency: "1d"
+
+pair_scan:
+  min_corr: 0.60
+  max_corr: 0.99
+  min_obs: 126
+  lookback_days: null      # null = full history
+  max_pairs: null
+  engle_granger_maxlag: 1
+  use_log: true
+  exclude_same_index: true
+  keep_excluded_pairs: true
+  n_jobs: null             # null = auto-detect CPU cores
+  
+  # Filtering thresholds
+  pvalue_threshold: 0.10
+  min_spread_range_pct: 8.0
+  min_half_life: 15
+  max_half_life: 120
+
+johansen:
+  min_basket_size: 3
+  max_basket_size: 4
+  det_order: 0
+  k_ar_diff: 1
+  min_corr_prefilter: 0.70
+  max_baskets: 50

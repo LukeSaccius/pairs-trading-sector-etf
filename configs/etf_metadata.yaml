@@ -1,466 +1,1524 @@
-# Detailed metadata for ETFs referenced by the project
+# ETF Metadata for Pairs Trading Research
+# Updated: 2025-12-01
+# Coverage: ~140 ETFs with detailed metadata for analysis and filtering
+
 etfs:
+  # ============================================================================
+  # SECTOR SPDRs (11)
+  # ============================================================================
   XLK:
     name: "Technology Select Sector SPDR Fund"
     sector: "Technology"
+    category: "sector_spdrs"
     region: "US"
-    issuer: "State Street Global Advisors"
+    issuer: "State Street"
     expense_ratio: 0.10
     benchmark: "Technology Select Sector Index"
-    description: "Large-cap U.S. technology equities with heavy mega-cap exposure"
     inception: "1998-12-16"
-  IYW:
-    name: "iShares U.S. Technology ETF"
-    sector: "Technology"
-    region: "US"
-    issuer: "BlackRock"
-    expense_ratio: 0.39
-    benchmark: "Russell 1000 Technology RIC 22.5/45 Capped Index"
-    description: "Broad-based U.S. tech coverage with slightly deeper mid-cap exposure"
-    inception: "2000-05-15"
+    tracks_index: "sp_tech"
+
   XLF:
     name: "Financial Select Sector SPDR Fund"
     sector: "Financials"
+    category: "sector_spdrs"
     region: "US"
-    issuer: "State Street Global Advisors"
+    issuer: "State Street"
     expense_ratio: 0.10
     benchmark: "Financial Select Sector Index"
-    description: "Large-cap U.S. banks, insurers, and diversified financials"
     inception: "1998-12-16"
-  VFH:
-    name: "Vanguard Financials ETF"
-    sector: "Financials"
-    region: "US"
-    issuer: "Vanguard"
-    expense_ratio: 0.10
-    benchmark: "MSCI US Investable Market Financials 25/50 Index"
-    description: "Financial sector exposure with Vanguard's broader holdings"
-    inception: "2004-01-26"
+    tracks_index: "sp_financials"
+
   XLE:
     name: "Energy Select Sector SPDR Fund"
     sector: "Energy"
+    category: "sector_spdrs"
     region: "US"
-    issuer: "State Street Global Advisors"
+    issuer: "State Street"
     expense_ratio: 0.10
     benchmark: "Energy Select Sector Index"
-    description: "Integrated oils plus oilfield services heavyweights"
     inception: "1998-12-16"
+    tracks_index: "sp_energy"
+
   XLY:
     name: "Consumer Discretionary Select Sector SPDR Fund"
     sector: "Consumer Discretionary"
+    category: "sector_spdrs"
     region: "US"
-    issuer: "State Street Global Advisors"
+    issuer: "State Street"
     expense_ratio: 0.10
     benchmark: "Consumer Discretionary Select Sector Index"
-    description: "U.S. discretionary companies with concentration in mega-cap retailers"
     inception: "1998-12-16"
+    tracks_index: "sp_discretionary"
+
   XLV:
     name: "Health Care Select Sector SPDR Fund"
     sector: "Health Care"
+    category: "sector_spdrs"
     region: "US"
-    issuer: "State Street Global Advisors"
+    issuer: "State Street"
     expense_ratio: 0.10
     benchmark: "Health Care Select Sector Index"
-    description: "Large-cap pharma, biotech, and managed care bellwethers"
     inception: "1998-12-16"
+    tracks_index: "sp_healthcare"
+
   XLI:
     name: "Industrial Select Sector SPDR Fund"
     sector: "Industrials"
+    category: "sector_spdrs"
     region: "US"
-    issuer: "State Street Global Advisors"
+    issuer: "State Street"
     expense_ratio: 0.10
     benchmark: "Industrial Select Sector Index"
-    description: "Diversified industrial conglomerates plus transportation leaders"
     inception: "1998-12-16"
+    tracks_index: "sp_industrials"
+
   XLP:
     name: "Consumer Staples Select Sector SPDR Fund"
     sector: "Consumer Staples"
+    category: "sector_spdrs"
     region: "US"
-    issuer: "State Street Global Advisors"
+    issuer: "State Street"
     expense_ratio: 0.10
     benchmark: "Consumer Staples Select Sector Index"
-    description: "Defensive staples names spanning food, beverage, and household goods"
     inception: "1998-12-16"
+    tracks_index: "sp_staples"
+
   XLB:
     name: "Materials Select Sector SPDR Fund"
     sector: "Materials"
+    category: "sector_spdrs"
     region: "US"
-    issuer: "State Street Global Advisors"
+    issuer: "State Street"
     expense_ratio: 0.10
     benchmark: "Materials Select Sector Index"
-    description: "Chemicals, metals & mining, and construction materials exposure"
     inception: "1998-12-16"
+    tracks_index: "sp_materials"
+
+  XLU:
+    name: "Utilities Select Sector SPDR Fund"
+    sector: "Utilities"
+    category: "sector_spdrs"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.10
+    benchmark: "Utilities Select Sector Index"
+    inception: "1998-12-16"
+    tracks_index: "sp_utilities"
+
+  XLC:
+    name: "Communication Services Select Sector SPDR Fund"
+    sector: "Communication Services"
+    category: "sector_spdrs"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.10
+    benchmark: "Communication Services Select Sector Index"
+    inception: "2018-06-18"  # Note: Started late, has incomplete history
+    tracks_index: "sp_comm"
+
+  XLRE:
+    name: "Real Estate Select Sector SPDR Fund"
+    sector: "Real Estate"
+    category: "sector_spdrs"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.10
+    benchmark: "Real Estate Select Sector Index"
+    inception: "2015-10-07"  # Note: Started late, has incomplete history
+    tracks_index: "sp_realestate"
+
+  # ============================================================================
+  # BROAD MARKET (15)
+  # ============================================================================
   SPY:
     name: "SPDR S&P 500 ETF Trust"
     sector: "Broad Market"
+    category: "broad_market"
     region: "US"
-    issuer: "State Street Global Advisors"
+    issuer: "State Street"
     expense_ratio: 0.09
     benchmark: "S&P 500 Index"
-    description: "Flagship U.S. large-cap benchmark ETF used as core beta"
     inception: "1993-01-22"
     tracks_index: "sp500"
+
   QQQ:
     name: "Invesco QQQ Trust"
-    sector: "Technology"
+    sector: "Broad Market"
+    category: "broad_market"
     region: "US"
     issuer: "Invesco"
     expense_ratio: 0.20
     benchmark: "Nasdaq-100 Index"
-    description: "Growth-oriented exposure to non-financial Nasdaq-100 constituents"
     inception: "1999-03-10"
     tracks_index: "nasdaq100"
-  XLU:
-    name: "Utilities Select Sector SPDR Fund"
-    sector: "Utilities"
-    region: "US"
-    issuer: "State Street Global Advisors"
-    expense_ratio: 0.10
-    benchmark: "Utilities Select Sector Index"
-    description: "U.S. regulated utilities and independent power producers"
-    inception: "1998-12-16"
-  XLC:
-    name: "Communication Services Select Sector SPDR Fund"
-    sector: "Communication Services"
-    region: "US"
-    issuer: "State Street Global Advisors"
-    expense_ratio: 0.10
-    benchmark: "Communication Services Select Sector Index"
-    description: "Telecom, media, and interactive services bellwethers"
-    inception: "2018-06-18"
-  XOP:
-    name: "SPDR S&P Oil & Gas Exploration & Production ETF"
-    sector: "Energy"
-    region: "US"
-    issuer: "State Street Global Advisors"
-    expense_ratio: 0.35
-    benchmark: "S&P Oil & Gas Exploration & Production Select Industry Index"
-    description: "Equal-weighted upstream energy producers"
-    inception: "2006-06-19"
-  XME:
-    name: "SPDR S&P Metals & Mining ETF"
-    sector: "Materials"
-    region: "US"
-    issuer: "State Street Global Advisors"
-    expense_ratio: 0.35
-    benchmark: "S&P Metals & Mining Select Industry Index"
-    description: "Diversified metals, mining, and steel equities"
-    inception: "2006-06-19"
-  ITB:
-    name: "iShares U.S. Home Construction ETF"
-    sector: "Consumer Discretionary"
-    region: "US"
-    issuer: "BlackRock"
-    expense_ratio: 0.39
-    benchmark: "Dow Jones U.S. Select Home Construction Index"
-    description: "Homebuilders and building products manufacturers"
-    inception: "2006-05-01"
-  XHB:
-    name: "SPDR S&P Homebuilders ETF"
-    sector: "Consumer Discretionary"
-    region: "US"
-    issuer: "State Street Global Advisors"
-    expense_ratio: 0.35
-    benchmark: "S&P Homebuilders Select Industry Index"
-    description: "Equal-weight homebuilders and related suppliers"
-    inception: "2006-01-31"
-  SMH:
-    name: "VanEck Semiconductor ETF"
-    sector: "Technology"
-    region: "US"
-    issuer: "VanEck"
-    expense_ratio: 0.35
-    benchmark: "MVIS US Listed Semiconductor 25 Index"
-    description: "Concentrated U.S.-listed semiconductor manufacturers"
-    inception: "2000-12-20"
-    tracks_index: "semiconductors"
-  SOXX:
-    name: "iShares Semiconductor ETF"
-    sector: "Technology"
-    region: "US"
-    issuer: "BlackRock"
-    expense_ratio: 0.35
-    benchmark: "ICE Semiconductor Index"
-    description: "Liquidity-weighted semiconductor exposure"
-    inception: "2001-07-10"
-    tracks_index: "semiconductors"
-  IBB:
-    name: "iShares Biotechnology ETF"
-    sector: "Health Care"
-    region: "US"
-    issuer: "BlackRock"
-    expense_ratio: 0.45
-    benchmark: "NASDAQ Biotechnology Index"
-    description: "Large- and mid-cap biotechnology innovators"
-    inception: "2001-02-05"
-  EEM:
-    name: "iShares MSCI Emerging Markets ETF"
-    sector: "Broad Market"
-    region: "Global"
-    issuer: "BlackRock"
-    expense_ratio: 0.69
-    benchmark: "MSCI Emerging Markets Index"
-    description: "Diversified large/mid EM equities"
-    inception: "2003-04-07"
-    tracks_index: "emerging_markets"
-  EFA:
-    name: "iShares MSCI EAFE ETF"
-    sector: "Broad Market"
-    region: "International"
-    issuer: "BlackRock"
-    expense_ratio: 0.33
-    benchmark: "MSCI EAFE Index"
-    description: "Developed ex-US large/mid caps"
-    inception: "2001-08-14"
-    tracks_index: "developed_intl"
-  TLT:
-    name: "iShares 20+ Year Treasury Bond ETF"
-    sector: "Fixed Income"
-    region: "US"
-    issuer: "BlackRock"
-    expense_ratio: 0.15
-    benchmark: "ICE U.S. Treasury 20+ Year Bond Index"
-    description: "Long-duration U.S. Treasury exposure"
-    inception: "2002-07-22"
-  HYG:
-    name: "iShares iBoxx $ High Yield Corporate Bond ETF"
-    sector: "Fixed Income"
-    region: "US"
-    issuer: "BlackRock"
-    expense_ratio: 0.48
-    benchmark: "Markit iBoxx USD Liquid High Yield Index"
-    description: "High-yield corporate bonds with liquidity screen"
-    inception: "2007-04-04"
-  LQD:
-    name: "iShares iBoxx $ Investment Grade Corporate Bond ETF"
-    sector: "Fixed Income"
-    region: "US"
-    issuer: "BlackRock"
-    expense_ratio: 0.14
-    benchmark: "Markit iBoxx USD Liquid Investment Grade Index"
-    description: "Long investment-grade corporate bonds"
-    inception: "2002-07-22"
+
   DIA:
-    name: "SPDR Dow Jones Industrial Average ETF Trust"
+    name: "SPDR Dow Jones Industrial Average ETF"
     sector: "Broad Market"
+    category: "broad_market"
     region: "US"
-    issuer: "State Street Global Advisors"
+    issuer: "State Street"
     expense_ratio: 0.16
     benchmark: "Dow Jones Industrial Average"
-    description: "Price-weighted U.S. blue chips"
     inception: "1998-01-13"
+    tracks_index: "djia"
+
   IWM:
     name: "iShares Russell 2000 ETF"
     sector: "Broad Market"
+    category: "broad_market"
     region: "US"
     issuer: "BlackRock"
     expense_ratio: 0.19
     benchmark: "Russell 2000 Index"
-    description: "Small-cap U.S. equity exposure"
     inception: "2000-05-22"
-  XLRE:
-    name: "Real Estate Select Sector SPDR Fund"
-    sector: "Real Estate"
+    tracks_index: "russell2000"
+
+  IWB:
+    name: "iShares Russell 1000 ETF"
+    sector: "Broad Market"
+    category: "broad_market"
     region: "US"
-    issuer: "State Street Global Advisors"
-    expense_ratio: 0.10
-    benchmark: "Real Estate Select Sector Index"
-    description: "Cap-weighted portfolio of U.S. equity REITs"
-    inception: "2015-10-07"
-    tracks_index: "us_reits"
-  VGT:
-    name: "Vanguard Information Technology ETF"
-    sector: "Technology"
-    region: "US"
-    issuer: "Vanguard"
-    expense_ratio: 0.10
-    benchmark: "MSCI US Investable Market Information Technology 25/50 Index"
-    description: "Market-cap weighted exposure to U.S. technology equities"
-    inception: "2004-01-26"
-  VHT:
-    name: "Vanguard Health Care ETF"
-    sector: "Health Care"
-    region: "US"
-    issuer: "Vanguard"
-    expense_ratio: 0.10
-    benchmark: "MSCI US Investable Market Health Care 25/50 Index"
-    description: "Broad-based U.S. health care equities"
-    inception: "2004-01-26"
-  VDE:
-    name: "Vanguard Energy ETF"
-    sector: "Energy"
-    region: "US"
-    issuer: "Vanguard"
-    expense_ratio: 0.10
-    benchmark: "MSCI US Investable Market Energy 25/50 Index"
-    description: "Market-cap weighted energy producers and service firms"
-    inception: "2004-09-23"
-  VNQ:
-    name: "Vanguard Real Estate ETF"
-    sector: "Real Estate"
-    region: "US"
-    issuer: "Vanguard"
-    expense_ratio: 0.12
-    benchmark: "MSCI US Investable Market Real Estate 25/50 Index"
-    description: "Diversified equity REIT exposure across property types"
-    inception: "2004-09-23"
-    tracks_index: "us_reits"
+    issuer: "BlackRock"
+    expense_ratio: 0.15
+    benchmark: "Russell 1000 Index"
+    inception: "2000-05-15"
+    tracks_index: "russell1000"
+
   VOO:
     name: "Vanguard S&P 500 ETF"
     sector: "Broad Market"
+    category: "broad_market"
     region: "US"
     issuer: "Vanguard"
     expense_ratio: 0.03
     benchmark: "S&P 500 Index"
-    description: "Low-cost core exposure to the S&P 500"
     inception: "2010-09-07"
     tracks_index: "sp500"
+
   IVV:
     name: "iShares Core S&P 500 ETF"
     sector: "Broad Market"
+    category: "broad_market"
     region: "US"
     issuer: "BlackRock"
     expense_ratio: 0.03
     benchmark: "S&P 500 Index"
-    description: "Core S&P 500 coverage with strong liquidity"
     inception: "2000-05-15"
     tracks_index: "sp500"
-  SCHG:
-    name: "Schwab U.S. Large-Cap Growth ETF"
+
+  VTI:
+    name: "Vanguard Total Stock Market ETF"
     sector: "Broad Market"
+    category: "broad_market"
     region: "US"
-    issuer: "Charles Schwab"
-    expense_ratio: 0.04
-    benchmark: "Dow Jones U.S. Large-Cap Growth Total Stock Market Index"
-    description: "Large-cap growth allocation tilted toward tech and consumer names"
-    inception: "2009-12-11"
-  SCHV:
-    name: "Schwab U.S. Large-Cap Value ETF"
+    issuer: "Vanguard"
+    expense_ratio: 0.03
+    benchmark: "CRSP US Total Market Index"
+    inception: "2001-05-24"
+    tracks_index: "total_market"
+
+  MDY:
+    name: "SPDR S&P MidCap 400 ETF Trust"
     sector: "Broad Market"
+    category: "broad_market"
     region: "US"
-    issuer: "Charles Schwab"
+    issuer: "State Street"
+    expense_ratio: 0.23
+    benchmark: "S&P MidCap 400 Index"
+    inception: "1995-05-04"
+    tracks_index: "sp400"
+
+  IJH:
+    name: "iShares Core S&P Mid-Cap ETF"
+    sector: "Broad Market"
+    category: "broad_market"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.05
+    benchmark: "S&P MidCap 400 Index"
+    inception: "2000-05-22"
+    tracks_index: "sp400"
+
+  IJR:
+    name: "iShares Core S&P Small-Cap ETF"
+    sector: "Broad Market"
+    category: "broad_market"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.06
+    benchmark: "S&P SmallCap 600 Index"
+    inception: "2000-05-22"
+    tracks_index: "sp600"
+
+  RSP:
+    name: "Invesco S&P 500 Equal Weight ETF"
+    sector: "Broad Market"
+    category: "broad_market"
+    region: "US"
+    issuer: "Invesco"
+    expense_ratio: 0.20
+    benchmark: "S&P 500 Equal Weight Index"
+    inception: "2003-04-24"
+    tracks_index: "sp500_ew"
+
+  OEF:
+    name: "iShares S&P 100 ETF"
+    sector: "Broad Market"
+    category: "broad_market"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.20
+    benchmark: "S&P 100 Index"
+    inception: "2000-10-23"
+    tracks_index: "sp100"
+
+  VV:
+    name: "Vanguard Large-Cap ETF"
+    sector: "Broad Market"
+    category: "broad_market"
+    region: "US"
+    issuer: "Vanguard"
     expense_ratio: 0.04
-    benchmark: "Dow Jones U.S. Large-Cap Value Total Stock Market Index"
-    description: "Large-cap value tilt emphasizing financials and industrials"
-    inception: "2009-12-11"
+    benchmark: "CRSP US Large Cap Index"
+    inception: "2004-01-27"
+    tracks_index: "large_cap"
+
+  VB:
+    name: "Vanguard Small-Cap ETF"
+    sector: "Broad Market"
+    category: "broad_market"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.05
+    benchmark: "CRSP US Small Cap Index"
+    inception: "2004-01-26"
+    tracks_index: "small_cap"
+
+  # ============================================================================
+  # FACTORS (20)
+  # ============================================================================
+  VTV:
+    name: "Vanguard Value ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.04
+    benchmark: "CRSP US Large Cap Value Index"
+    inception: "2004-01-26"
+    tracks_index: "value"
+
+  VUG:
+    name: "Vanguard Growth ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.04
+    benchmark: "CRSP US Large Cap Growth Index"
+    inception: "2004-01-26"
+    tracks_index: "growth"
+
+  IVE:
+    name: "iShares S&P 500 Value ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.18
+    benchmark: "S&P 500 Value Index"
+    inception: "2000-05-22"
+    tracks_index: "sp500_value"
+
+  IVW:
+    name: "iShares S&P 500 Growth ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.18
+    benchmark: "S&P 500 Growth Index"
+    inception: "2000-05-22"
+    tracks_index: "sp500_growth"
+
+  SPYV:
+    name: "SPDR Portfolio S&P 500 Value ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.04
+    benchmark: "S&P 500 Value Index"
+    inception: "2000-09-25"
+    tracks_index: "sp500_value"
+
+  SPYG:
+    name: "SPDR Portfolio S&P 500 Growth ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.04
+    benchmark: "S&P 500 Growth Index"
+    inception: "2000-09-25"
+    tracks_index: "sp500_growth"
+
   IWF:
     name: "iShares Russell 1000 Growth ETF"
-    sector: "Broad Market"
+    sector: "Factor"
+    category: "factors"
     region: "US"
     issuer: "BlackRock"
     expense_ratio: 0.18
     benchmark: "Russell 1000 Growth Index"
-    description: "Large-cap growth exposure with Russell methodology"
     inception: "2000-05-22"
+    tracks_index: "russell1000_growth"
+
   IWD:
     name: "iShares Russell 1000 Value ETF"
-    sector: "Broad Market"
+    sector: "Factor"
+    category: "factors"
     region: "US"
     issuer: "BlackRock"
     expense_ratio: 0.19
     benchmark: "Russell 1000 Value Index"
-    description: "Large-cap value basket complementing IWF"
     inception: "2000-05-22"
-  MDY:
-    name: "SPDR S&P MidCap 400 ETF Trust"
-    sector: "Broad Market"
+    tracks_index: "russell1000_value"
+
+  MTUM:
+    name: "iShares MSCI USA Momentum Factor ETF"
+    sector: "Factor"
+    category: "factors"
     region: "US"
-    issuer: "State Street Global Advisors"
-    expense_ratio: 0.23
-    benchmark: "S&P MidCap 400 Index"
-    description: "Mid-cap exposure tracking the S&P 400"
-    inception: "1995-05-04"
+    issuer: "BlackRock"
+    expense_ratio: 0.15
+    benchmark: "MSCI USA Momentum SR Variant Index"
+    inception: "2013-04-16"
+    tracks_index: "momentum"
+
+  QUAL:
+    name: "iShares MSCI USA Quality Factor ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.15
+    benchmark: "MSCI USA Sector Neutral Quality Index"
+    inception: "2013-07-16"
+    tracks_index: "quality"
+
+  USMV:
+    name: "iShares MSCI USA Min Vol Factor ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.15
+    benchmark: "MSCI USA Minimum Volatility Index"
+    inception: "2011-10-18"
+    tracks_index: "min_vol"
+
   SPLV:
     name: "Invesco S&P 500 Low Volatility ETF"
-    sector: "Broad Market"
+    sector: "Factor"
+    category: "factors"
     region: "US"
     issuer: "Invesco"
     expense_ratio: 0.25
     benchmark: "S&P 500 Low Volatility Index"
-    description: "Defensive tilt focusing on the 100 least volatile S&P names"
     inception: "2011-05-05"
+    tracks_index: "low_vol"
+
+  VLUE:
+    name: "iShares MSCI USA Value Factor ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.15
+    benchmark: "MSCI USA Enhanced Value Index"
+    inception: "2013-04-16"
+    tracks_index: "value_factor"
+
+  SCHG:
+    name: "Schwab U.S. Large-Cap Growth ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "Schwab"
+    expense_ratio: 0.04
+    benchmark: "Dow Jones U.S. Large-Cap Growth Index"
+    inception: "2009-12-11"
+    tracks_index: "growth"
+
+  SCHV:
+    name: "Schwab U.S. Large-Cap Value ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "Schwab"
+    expense_ratio: 0.04
+    benchmark: "Dow Jones U.S. Large-Cap Value Index"
+    inception: "2009-12-11"
+    tracks_index: "value"
+
+  VBR:
+    name: "Vanguard Small-Cap Value ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.07
+    benchmark: "CRSP US Small Cap Value Index"
+    inception: "2004-01-26"
+    tracks_index: "small_value"
+
+  VBK:
+    name: "Vanguard Small-Cap Growth ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.07
+    benchmark: "CRSP US Small Cap Growth Index"
+    inception: "2004-01-26"
+    tracks_index: "small_growth"
+
+  DVY:
+    name: "iShares Select Dividend ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.38
+    benchmark: "Dow Jones U.S. Select Dividend Index"
+    inception: "2003-11-03"
+    tracks_index: "dividend"
+
+  VYM:
+    name: "Vanguard High Dividend Yield ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.06
+    benchmark: "FTSE High Dividend Yield Index"
+    inception: "2006-11-10"
+    tracks_index: "high_dividend"
+
+  SCHD:
+    name: "Schwab U.S. Dividend Equity ETF"
+    sector: "Factor"
+    category: "factors"
+    region: "US"
+    issuer: "Schwab"
+    expense_ratio: 0.06
+    benchmark: "Dow Jones U.S. Dividend 100 Index"
+    inception: "2011-10-20"
+    tracks_index: "dividend_100"
+
+  # ============================================================================
+  # SECTOR VARIANTS (25)
+  # ============================================================================
+  IYW:
+    name: "iShares U.S. Technology ETF"
+    sector: "Technology"
+    category: "sector_variants"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.39
+    benchmark: "Russell 1000 Technology RIC Index"
+    inception: "2000-05-15"
+    tracks_index: "tech"
+
+  VGT:
+    name: "Vanguard Information Technology ETF"
+    sector: "Technology"
+    category: "sector_variants"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.10
+    benchmark: "MSCI US IMI Info Tech 25/50"
+    inception: "2004-01-26"
+    tracks_index: "tech"
+
+  VFH:
+    name: "Vanguard Financials ETF"
+    sector: "Financials"
+    category: "sector_variants"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.10
+    benchmark: "MSCI US IMI Financials 25/50"
+    inception: "2004-01-26"
+    tracks_index: "financials"
+
+  VHT:
+    name: "Vanguard Health Care ETF"
+    sector: "Health Care"
+    category: "sector_variants"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.10
+    benchmark: "MSCI US IMI Health Care 25/50"
+    inception: "2004-01-26"
+    tracks_index: "healthcare"
+
+  VDE:
+    name: "Vanguard Energy ETF"
+    sector: "Energy"
+    category: "sector_variants"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.10
+    benchmark: "MSCI US IMI Energy 25/50"
+    inception: "2004-09-23"
+    tracks_index: "energy"
+
+  VNQ:
+    name: "Vanguard Real Estate ETF"
+    sector: "Real Estate"
+    category: "sector_variants"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.12
+    benchmark: "MSCI US IMI Real Estate 25/50"
+    inception: "2004-09-23"
+    tracks_index: "reits"
+
+  IYR:
+    name: "iShares U.S. Real Estate ETF"
+    sector: "Real Estate"
+    category: "sector_variants"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.39
+    benchmark: "Dow Jones U.S. Real Estate Index"
+    inception: "2000-06-12"
+    tracks_index: "reits"
+
+  XBI:
+    name: "SPDR S&P Biotech ETF"
+    sector: "Health Care"
+    category: "sector_variants"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.35
+    benchmark: "S&P Biotechnology Select Industry"
+    inception: "2006-01-31"
+    tracks_index: "biotech"
+
+  IBB:
+    name: "iShares Biotechnology ETF"
+    sector: "Health Care"
+    category: "sector_variants"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.45
+    benchmark: "NASDAQ Biotechnology Index"
+    inception: "2001-02-05"
+    tracks_index: "biotech"
+
+  XRT:
+    name: "SPDR S&P Retail ETF"
+    sector: "Consumer Discretionary"
+    category: "sector_variants"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.35
+    benchmark: "S&P Retail Select Industry"
+    inception: "2006-06-19"
+    tracks_index: "retail"
+
+  XHB:
+    name: "SPDR S&P Homebuilders ETF"
+    sector: "Consumer Discretionary"
+    category: "sector_variants"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.35
+    benchmark: "S&P Homebuilders Select Industry"
+    inception: "2006-01-31"
+    tracks_index: "homebuilders"
+
+  ITB:
+    name: "iShares U.S. Home Construction ETF"
+    sector: "Consumer Discretionary"
+    category: "sector_variants"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.39
+    benchmark: "Dow Jones U.S. Home Construction"
+    inception: "2006-05-01"
+    tracks_index: "homebuilders"
+
+  KBE:
+    name: "SPDR S&P Bank ETF"
+    sector: "Financials"
+    category: "sector_variants"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.35
+    benchmark: "S&P Banks Select Industry"
+    inception: "2005-11-08"
+    tracks_index: "banks"
+
+  KRE:
+    name: "SPDR S&P Regional Banking ETF"
+    sector: "Financials"
+    category: "sector_variants"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.35
+    benchmark: "S&P Regional Banks Select Industry"
+    inception: "2006-06-19"
+    tracks_index: "regional_banks"
+
+  IAI:
+    name: "iShares U.S. Broker-Dealers & Securities Exchanges ETF"
+    sector: "Financials"
+    category: "sector_variants"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.39
+    benchmark: "Dow Jones U.S. Broker-Dealers Index"
+    inception: "2006-05-01"
+    tracks_index: "brokers"
+
+  SMH:
+    name: "VanEck Semiconductor ETF"
+    sector: "Technology"
+    category: "sector_variants"
+    region: "US"
+    issuer: "VanEck"
+    expense_ratio: 0.35
+    benchmark: "MVIS US Listed Semiconductor 25"
+    inception: "2000-12-20"
+    tracks_index: "semiconductors"
+
+  SOXX:
+    name: "iShares Semiconductor ETF"
+    sector: "Technology"
+    category: "sector_variants"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.35
+    benchmark: "ICE Semiconductor Index"
+    inception: "2001-07-10"
+    tracks_index: "semiconductors"
+
+  XOP:
+    name: "SPDR S&P Oil & Gas Exploration ETF"
+    sector: "Energy"
+    category: "sector_variants"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.35
+    benchmark: "S&P Oil & Gas E&P Select Industry"
+    inception: "2006-06-19"
+    tracks_index: "oil_gas_ep"
+
+  OIH:
+    name: "VanEck Oil Services ETF"
+    sector: "Energy"
+    category: "sector_variants"
+    region: "US"
+    issuer: "VanEck"
+    expense_ratio: 0.35
+    benchmark: "MVIS US Listed Oil Services 25"
+    inception: "2001-12-20"
+    tracks_index: "oil_services"
+
+  XME:
+    name: "SPDR S&P Metals & Mining ETF"
+    sector: "Materials"
+    category: "sector_variants"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.35
+    benchmark: "S&P Metals & Mining Select Industry"
+    inception: "2006-06-19"
+    tracks_index: "metals_mining"
+
+  GDX:
+    name: "VanEck Gold Miners ETF"
+    sector: "Materials"
+    category: "sector_variants"
+    region: "Global"
+    issuer: "VanEck"
+    expense_ratio: 0.51
+    benchmark: "NYSE Arca Gold Miners Index"
+    inception: "2006-05-16"
+    tracks_index: "gold_miners"
+
+  GDXJ:
+    name: "VanEck Junior Gold Miners ETF"
+    sector: "Materials"
+    category: "sector_variants"
+    region: "Global"
+    issuer: "VanEck"
+    expense_ratio: 0.52
+    benchmark: "MVIS Junior Gold Miners Index"
+    inception: "2009-11-10"
+    tracks_index: "junior_gold_miners"
+
+  ITA:
+    name: "iShares U.S. Aerospace & Defense ETF"
+    sector: "Industrials"
+    category: "sector_variants"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.39
+    benchmark: "Dow Jones U.S. Aerospace & Defense"
+    inception: "2006-05-01"
+    tracks_index: "aerospace"
+
+  XAR:
+    name: "SPDR S&P Aerospace & Defense ETF"
+    sector: "Industrials"
+    category: "sector_variants"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.35
+    benchmark: "S&P Aerospace & Defense Select Industry"
+    inception: "2011-09-28"
+    tracks_index: "aerospace"
+
+  IYT:
+    name: "iShares U.S. Transportation ETF"
+    sector: "Industrials"
+    category: "sector_variants"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.39
+    benchmark: "Dow Jones Transportation Average"
+    inception: "2003-10-06"
+    tracks_index: "transportation"
+
+  # ============================================================================
+  # FIXED INCOME (20)
+  # ============================================================================
+  TLT:
+    name: "iShares 20+ Year Treasury Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.15
+    benchmark: "ICE U.S. Treasury 20+ Year"
+    inception: "2002-07-22"
+    tracks_index: "treasury_20plus"
+
+  IEF:
+    name: "iShares 7-10 Year Treasury Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.15
+    benchmark: "ICE U.S. Treasury 7-10 Year"
+    inception: "2002-07-22"
+    tracks_index: "treasury_7_10"
+
+  IEI:
+    name: "iShares 3-7 Year Treasury Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.15
+    benchmark: "ICE U.S. Treasury 3-7 Year"
+    inception: "2007-01-05"
+    tracks_index: "treasury_3_7"
+
+  SHY:
+    name: "iShares 1-3 Year Treasury Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.15
+    benchmark: "ICE U.S. Treasury 1-3 Year"
+    inception: "2002-07-22"
+    tracks_index: "treasury_1_3"
+
+  GOVT:
+    name: "iShares U.S. Treasury Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.05
+    benchmark: "ICE U.S. Treasury Core Bond"
+    inception: "2012-02-14"
+    tracks_index: "treasury_broad"
+
+  AGG:
+    name: "iShares Core U.S. Aggregate Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.03
+    benchmark: "Bloomberg U.S. Aggregate Bond"
+    inception: "2003-09-22"
+    tracks_index: "agg_bond"
+
+  BND:
+    name: "Vanguard Total Bond Market ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.03
+    benchmark: "Bloomberg U.S. Aggregate Float Adjusted"
+    inception: "2007-04-03"
+    tracks_index: "agg_bond"
+
+  LQD:
+    name: "iShares iBoxx $ Investment Grade Corporate Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.14
+    benchmark: "iBoxx USD Liquid Investment Grade"
+    inception: "2002-07-22"
+    tracks_index: "ig_corp"
+
+  VCIT:
+    name: "Vanguard Intermediate-Term Corporate Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.04
+    benchmark: "Bloomberg U.S. 5-10 Year Corporate"
+    inception: "2009-11-19"
+    tracks_index: "corp_5_10"
+
+  VCSH:
+    name: "Vanguard Short-Term Corporate Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "Vanguard"
+    expense_ratio: 0.04
+    benchmark: "Bloomberg U.S. 1-5 Year Corporate"
+    inception: "2009-11-19"
+    tracks_index: "corp_1_5"
+
+  HYG:
+    name: "iShares iBoxx $ High Yield Corporate Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.48
+    benchmark: "iBoxx USD Liquid High Yield"
+    inception: "2007-04-04"
+    tracks_index: "hy_corp"
+
+  JNK:
+    name: "SPDR Bloomberg High Yield Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.40
+    benchmark: "Bloomberg High Yield Very Liquid"
+    inception: "2007-11-28"
+    tracks_index: "hy_corp"
+
+  SJNK:
+    name: "SPDR Bloomberg Short Term High Yield Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "State Street"
+    expense_ratio: 0.40
+    benchmark: "Bloomberg US High Yield 350mn 0-5 Year"
+    inception: "2012-03-14"
+    tracks_index: "hy_short"
+
+  TIP:
+    name: "iShares TIPS Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.19
+    benchmark: "Bloomberg U.S. Treasury Inflation-Linked"
+    inception: "2003-12-04"
+    tracks_index: "tips"
+
+  MUB:
+    name: "iShares National Muni Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.07
+    benchmark: "S&P National AMT-Free Municipal"
+    inception: "2007-09-07"
+    tracks_index: "muni"
+
+  PFF:
+    name: "iShares Preferred & Income Securities ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.45
+    benchmark: "ICE Exchange-Listed Preferred & Hybrid"
+    inception: "2007-03-26"
+    tracks_index: "preferred"
+
+  FLOT:
+    name: "iShares Floating Rate Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.15
+    benchmark: "Bloomberg US Floating Rate Note"
+    inception: "2011-06-14"
+    tracks_index: "float_rate"
+
+  BNDX:
+    name: "Vanguard Total International Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "International"
+    issuer: "Vanguard"
+    expense_ratio: 0.07
+    benchmark: "Bloomberg Global Aggregate ex-USD Float Adjusted"
+    inception: "2013-05-31"
+    tracks_index: "intl_bond"
+
+  EMB:
+    name: "iShares J.P. Morgan USD Emerging Markets Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "Emerging Markets"
+    issuer: "BlackRock"
+    expense_ratio: 0.39
+    benchmark: "J.P. Morgan EMBI Global Core"
+    inception: "2007-12-17"
+    tracks_index: "em_bond"
+
+  IGIB:
+    name: "iShares 5-10 Year Investment Grade Corporate Bond ETF"
+    sector: "Fixed Income"
+    category: "fixed_income"
+    region: "US"
+    issuer: "BlackRock"
+    expense_ratio: 0.06
+    benchmark: "ICE BofA 5-10 Year US Corporate"
+    inception: "2007-01-05"
+    tracks_index: "ig_5_10"
+
+  # ============================================================================
+  # INTERNATIONAL DEVELOPED (20)
+  # ============================================================================
+  EFA:
+    name: "iShares MSCI EAFE ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Developed ex-US"
+    issuer: "BlackRock"
+    expense_ratio: 0.33
+    benchmark: "MSCI EAFE Index"
+    inception: "2001-08-14"
+    tracks_index: "eafe"
+
   VEA:
     name: "Vanguard FTSE Developed Markets ETF"
     sector: "International"
-    region: "International"
+    category: "international_developed"
+    region: "Developed ex-US"
     issuer: "Vanguard"
     expense_ratio: 0.05
-    benchmark: "FTSE Developed All Cap ex US Index"
-    description: "Broad developed-market equities excluding the U.S."
+    benchmark: "FTSE Developed All Cap ex US"
     inception: "2007-07-20"
-    tracks_index: "developed_intl"
-  VWO:
-    name: "Vanguard FTSE Emerging Markets ETF"
+    tracks_index: "developed_ex_us"
+
+  IEFA:
+    name: "iShares Core MSCI EAFE ETF"
     sector: "International"
-    region: "Global"
-    issuer: "Vanguard"
-    expense_ratio: 0.08
-    benchmark: "FTSE Emerging Markets All Cap China A Inclusion Index"
-    description: "Diversified emerging-markets equity exposure"
-    inception: "2005-03-04"
-    tracks_index: "emerging_markets"
+    category: "international_developed"
+    region: "Developed ex-US"
+    issuer: "BlackRock"
+    expense_ratio: 0.07
+    benchmark: "MSCI EAFE IMI Index"
+    inception: "2012-10-18"
+    tracks_index: "eafe"
+
   VGK:
     name: "Vanguard FTSE Europe ETF"
     sector: "International"
-    region: "International"
+    category: "international_developed"
+    region: "Europe"
     issuer: "Vanguard"
     expense_ratio: 0.08
-    benchmark: "FTSE Developed Europe All Cap Index"
-    description: "Developed Europe heavyweights across sectors"
+    benchmark: "FTSE Developed Europe All Cap"
     inception: "2005-03-04"
+    tracks_index: "europe"
+
+  FEZ:
+    name: "SPDR EURO STOXX 50 ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Eurozone"
+    issuer: "State Street"
+    expense_ratio: 0.29
+    benchmark: "EURO STOXX 50 Index"
+    inception: "2002-10-15"
+    tracks_index: "euro_stoxx_50"
+
+  EZU:
+    name: "iShares MSCI Eurozone ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Eurozone"
+    issuer: "BlackRock"
+    expense_ratio: 0.51
+    benchmark: "MSCI EMU Index"
+    inception: "2000-07-25"
+    tracks_index: "eurozone"
+
+  EWG:
+    name: "iShares MSCI Germany ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Germany"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI Germany Index"
+    inception: "1996-03-12"
+    tracks_index: "germany"
+
+  EWU:
+    name: "iShares MSCI United Kingdom ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "UK"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI United Kingdom Index"
+    inception: "1996-03-12"
+    tracks_index: "uk"
+
+  EWQ:
+    name: "iShares MSCI France ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "France"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI France Index"
+    inception: "1996-03-12"
+    tracks_index: "france"
+
+  EWI:
+    name: "iShares MSCI Italy ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Italy"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI Italy Index"
+    inception: "1996-03-12"
+    tracks_index: "italy"
+
+  EWP:
+    name: "iShares MSCI Spain ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Spain"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI Spain Index"
+    inception: "1996-03-12"
+    tracks_index: "spain"
+
+  EWL:
+    name: "iShares MSCI Switzerland ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Switzerland"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI Switzerland Index"
+    inception: "1996-03-12"
+    tracks_index: "switzerland"
+
+  EWN:
+    name: "iShares MSCI Netherlands ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Netherlands"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI Netherlands Index"
+    inception: "1996-03-12"
+    tracks_index: "netherlands"
+
   EWJ:
     name: "iShares MSCI Japan ETF"
     sector: "International"
+    category: "international_developed"
     region: "Japan"
     issuer: "BlackRock"
     expense_ratio: 0.50
     benchmark: "MSCI Japan Index"
-    description: "Large- and mid-cap Japanese equities"
     inception: "1996-03-12"
+    tracks_index: "japan"
+
+  DXJ:
+    name: "WisdomTree Japan Hedged Equity Fund"
+    sector: "International"
+    category: "international_developed"
+    region: "Japan"
+    issuer: "WisdomTree"
+    expense_ratio: 0.48
+    benchmark: "WisdomTree Japan Hedged Equity"
+    inception: "2006-06-16"
+    tracks_index: "japan_hedged"
+
+  EWA:
+    name: "iShares MSCI Australia ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Australia"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI Australia Index"
+    inception: "1996-03-12"
+    tracks_index: "australia"
+
+  EWC:
+    name: "iShares MSCI Canada ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Canada"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI Canada Index"
+    inception: "1996-03-12"
+    tracks_index: "canada"
+
+  EWH:
+    name: "iShares MSCI Hong Kong ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Hong Kong"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI Hong Kong Index"
+    inception: "1996-03-12"
+    tracks_index: "hong_kong"
+
+  EWS:
+    name: "iShares MSCI Singapore ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Singapore"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "MSCI Singapore Index"
+    inception: "1996-03-12"
+    tracks_index: "singapore"
+
+  EPP:
+    name: "iShares MSCI Pacific ex Japan ETF"
+    sector: "International"
+    category: "international_developed"
+    region: "Asia Pacific"
+    issuer: "BlackRock"
+    expense_ratio: 0.48
+    benchmark: "MSCI Pacific ex Japan Index"
+    inception: "2001-10-25"
+    tracks_index: "pacific_ex_japan"
+
+  # ============================================================================
+  # EMERGING MARKETS (15)
+  # ============================================================================
+  EEM:
+    name: "iShares MSCI Emerging Markets ETF"
+    sector: "International"
+    category: "emerging_markets"
+    region: "Emerging Markets"
+    issuer: "BlackRock"
+    expense_ratio: 0.69
+    benchmark: "MSCI Emerging Markets Index"
+    inception: "2003-04-07"
+    tracks_index: "em"
+
+  VWO:
+    name: "Vanguard FTSE Emerging Markets ETF"
+    sector: "International"
+    category: "emerging_markets"
+    region: "Emerging Markets"
+    issuer: "Vanguard"
+    expense_ratio: 0.08
+    benchmark: "FTSE Emerging Markets All Cap China A"
+    inception: "2005-03-04"
+    tracks_index: "em"
+
+  IEMG:
+    name: "iShares Core MSCI Emerging Markets ETF"
+    sector: "International"
+    category: "emerging_markets"
+    region: "Emerging Markets"
+    issuer: "BlackRock"
+    expense_ratio: 0.09
+    benchmark: "MSCI Emerging Markets IMI"
+    inception: "2012-10-18"
+    tracks_index: "em"
+
   FXI:
     name: "iShares China Large-Cap ETF"
     sector: "International"
+    category: "emerging_markets"
     region: "China"
     issuer: "BlackRock"
     expense_ratio: 0.74
     benchmark: "FTSE China 50 Index"
-    description: "Concentrated exposure to Hong Kong-listed Chinese large caps"
     inception: "2004-10-05"
+    tracks_index: "china"
+
+  MCHI:
+    name: "iShares MSCI China ETF"
+    sector: "International"
+    category: "emerging_markets"
+    region: "China"
+    issuer: "BlackRock"
+    expense_ratio: 0.59
+    benchmark: "MSCI China Index"
+    inception: "2011-03-29"
+    tracks_index: "china"
+
+  GXC:
+    name: "SPDR S&P China ETF"
+    sector: "International"
+    category: "emerging_markets"
+    region: "China"
+    issuer: "State Street"
+    expense_ratio: 0.59
+    benchmark: "S&P China BMI Index"
+    inception: "2007-03-19"
+    tracks_index: "china"
+
+  EWT:
+    name: "iShares MSCI Taiwan ETF"
+    sector: "International"
+    category: "emerging_markets"
+    region: "Taiwan"
+    issuer: "BlackRock"
+    expense_ratio: 0.59
+    benchmark: "MSCI Taiwan Index"
+    inception: "2000-06-20"
+    tracks_index: "taiwan"
+
+  EWY:
+    name: "iShares MSCI South Korea ETF"
+    sector: "International"
+    category: "emerging_markets"
+    region: "South Korea"
+    issuer: "BlackRock"
+    expense_ratio: 0.59
+    benchmark: "MSCI Korea Index"
+    inception: "2000-05-09"
+    tracks_index: "korea"
+
+  INDA:
+    name: "iShares MSCI India ETF"
+    sector: "International"
+    category: "emerging_markets"
+    region: "India"
+    issuer: "BlackRock"
+    expense_ratio: 0.65
+    benchmark: "MSCI India Index"
+    inception: "2012-02-02"
+    tracks_index: "india"
+
+  EPI:
+    name: "WisdomTree India Earnings Fund"
+    sector: "International"
+    category: "emerging_markets"
+    region: "India"
+    issuer: "WisdomTree"
+    expense_ratio: 0.84
+    benchmark: "WisdomTree India Earnings Index"
+    inception: "2008-02-22"
+    tracks_index: "india"
+
+  EWZ:
+    name: "iShares MSCI Brazil ETF"
+    sector: "International"
+    category: "emerging_markets"
+    region: "Brazil"
+    issuer: "BlackRock"
+    expense_ratio: 0.59
+    benchmark: "MSCI Brazil Index"
+    inception: "2000-07-10"
+    tracks_index: "brazil"
+
   EWW:
     name: "iShares MSCI Mexico ETF"
     sector: "International"
+    category: "emerging_markets"
     region: "Mexico"
     issuer: "BlackRock"
     expense_ratio: 0.50
-    benchmark: "MSCI Mexico IMI 25/50 Index"
-    description: "Single-country access to Mexican equities"
+    benchmark: "MSCI Mexico IMI 25/50"
     inception: "1996-03-12"
+    tracks_index: "mexico"
+
   ILF:
     name: "iShares Latin America 40 ETF"
     sector: "International"
+    category: "emerging_markets"
     region: "Latin America"
     issuer: "BlackRock"
     expense_ratio: 0.49
-    benchmark: "S&P Latin America 40 Index"
-    description: "Large-cap basket across Brazil, Mexico, Chile, and Peru"
+    benchmark: "S&P Latin America 40"
     inception: "2001-10-26"
-  AGG:
-    name: "iShares Core U.S. Aggregate Bond ETF"
-    sector: "Fixed Income"
-    region: "US"
+    tracks_index: "latam"
+
+  TUR:
+    name: "iShares MSCI Turkey ETF"
+    sector: "International"
+    category: "emerging_markets"
+    region: "Turkey"
     issuer: "BlackRock"
-    expense_ratio: 0.03
-    benchmark: "Bloomberg U.S. Aggregate Bond Index"
-    description: "Investment-grade U.S. bond market proxy"
-    inception: "2003-09-22"
-    tracks_index: "agg_bond"
-  BND:
-    name: "Vanguard Total Bond Market ETF"
-    sector: "Fixed Income"
+    expense_ratio: 0.59
+    benchmark: "MSCI Turkey IMI 25/50"
+    inception: "2008-03-26"
+    tracks_index: "turkey"
+
+  EZA:
+    name: "iShares MSCI South Africa ETF"
+    sector: "International"
+    category: "emerging_markets"
+    region: "South Africa"
+    issuer: "BlackRock"
+    expense_ratio: 0.59
+    benchmark: "MSCI South Africa Index"
+    inception: "2003-02-03"
+    tracks_index: "south_africa"
+
+  # ============================================================================
+  # COMMODITIES (10)
+  # ============================================================================
+  GLD:
+    name: "SPDR Gold Shares"
+    sector: "Commodities"
+    category: "commodities"
+    region: "Global"
+    issuer: "State Street"
+    expense_ratio: 0.40
+    benchmark: "LBMA Gold Price PM"
+    inception: "2004-11-18"
+    tracks_index: "gold"
+
+  IAU:
+    name: "iShares Gold Trust"
+    sector: "Commodities"
+    category: "commodities"
+    region: "Global"
+    issuer: "BlackRock"
+    expense_ratio: 0.25
+    benchmark: "LBMA Gold Price PM"
+    inception: "2005-01-21"
+    tracks_index: "gold"
+
+  SLV:
+    name: "iShares Silver Trust"
+    sector: "Commodities"
+    category: "commodities"
+    region: "Global"
+    issuer: "BlackRock"
+    expense_ratio: 0.50
+    benchmark: "LBMA Silver Price"
+    inception: "2006-04-21"
+    tracks_index: "silver"
+
+  DBC:
+    name: "Invesco DB Commodity Index Tracking Fund"
+    sector: "Commodities"
+    category: "commodities"
+    region: "Global"
+    issuer: "Invesco"
+    expense_ratio: 0.85
+    benchmark: "DBIQ Optimum Yield Diversified Commodity"
+    inception: "2006-02-03"
+    tracks_index: "commodities_broad"
+
+  DBA:
+    name: "Invesco DB Agriculture Fund"
+    sector: "Commodities"
+    category: "commodities"
+    region: "Global"
+    issuer: "Invesco"
+    expense_ratio: 0.85
+    benchmark: "DBIQ Diversified Agriculture"
+    inception: "2007-01-05"
+    tracks_index: "agriculture"
+
+  USO:
+    name: "United States Oil Fund"
+    sector: "Commodities"
+    category: "commodities"
     region: "US"
-    issuer: "Vanguard"
-    expense_ratio: 0.03
-    benchmark: "Bloomberg U.S. Aggregate Float Adjusted Index"
-    description: "Broad investment-grade bond exposure"
-    inception: "2007-04-03"
-    tracks_index: "agg_bond"
+    issuer: "USCF"
+    expense_ratio: 0.83
+    benchmark: "WTI Crude Oil Futures"
+    inception: "2006-04-10"
+    tracks_index: "crude_oil"
+
+  UNG:
+    name: "United States Natural Gas Fund"
+    sector: "Commodities"
+    category: "commodities"
+    region: "US"
+    issuer: "USCF"
+    expense_ratio: 1.11
+    benchmark: "Henry Hub Natural Gas Futures"
+    inception: "2007-04-18"
+    tracks_index: "natural_gas"
+
+  PDBC:
+    name: "Invesco Optimum Yield Diversified Commodity Strategy ETF"
+    sector: "Commodities"
+    category: "commodities"
+    region: "Global"
+    issuer: "Invesco"
+    expense_ratio: 0.59
+    benchmark: "DBIQ Optimum Yield Diversified Commodity"
+    inception: "2014-11-07"
+    tracks_index: "commodities_broad"
+
+  MOO:
+    name: "VanEck Agribusiness ETF"
+    sector: "Commodities"
+    category: "commodities"
+    region: "Global"
+    issuer: "VanEck"
+    expense_ratio: 0.53
+    benchmark: "MVIS Global Agribusiness Index"
+    inception: "2007-08-31"
+    tracks_index: "agribusiness"
+
+  COPX:
+    name: "Global X Copper Miners ETF"
+    sector: "Commodities"
+    category: "commodities"
+    region: "Global"
+    issuer: "Global X"
+    expense_ratio: 0.65
+    benchmark: "Solactive Global Copper Miners"
+    inception: "2010-04-19"
+    tracks_index: "copper_miners"

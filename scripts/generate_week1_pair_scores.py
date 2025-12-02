@@ -19,6 +19,9 @@ def main() -> None:
     price_path = PROJECT_ROOT / "data" / "raw" / "etf_prices.csv"
     metadata_path = PROJECT_ROOT / "configs" / "etf_metadata.yaml"
     results_path = PROJECT_ROOT / "results" / "week1_pair_scores.csv"
+    excluded_results_path = results_path.with_name(
+        f"{results_path.stem}_excluded{results_path.suffix}"
+    )
 
     config = load_yaml_config(config_path)
     pair_defaults = config.get("pair_scan", {})
@@ -27,6 +30,7 @@ def main() -> None:
         config_path=config_path,
         price_path=price_path,
         output_path=results_path,
+        excluded_output_path=excluded_results_path,
         list_name=pair_defaults.get("list_name"),
         metadata_path=metadata_path,
         lookback_days=pair_defaults.get("lookback_days", 252),
@@ -36,6 +40,9 @@ def main() -> None:
         engle_granger_maxlag=pair_defaults.get("engle_granger_maxlag", 1),
         return_method=pair_defaults.get("return_method", "log"),
         allow_cross_sector=pair_defaults.get("allow_cross_sector", True),
+        exclude_same_index=pair_defaults.get("exclude_same_index", True),
+        max_corr=pair_defaults.get("max_corr", 0.99),
+        keep_excluded_pairs=pair_defaults.get("keep_excluded_pairs", False),
     )
 
     df = run_pair_scan(cfg)

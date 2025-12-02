@@ -89,3 +89,65 @@ For pairs trading we need the rubber band, not just synchronized dancing.
   1. Filter by correlation.
   2. Test for cointegration.
   3. Trade the stationary spread.
+
+---
+
+## 5. The Hard Truth: Cointegration ≠ Tradeable (Added 2025-12-03)
+
+### What We Learned the Hard Way
+
+**The Setup:**
+- We found ETF pairs that ARE cointegrated (p < 0.10)
+- Example: GLD-IAU (gold ETFs), SPY-VOO (S&P 500 ETFs)
+- Statistically, their spread is "stationary" (I(0))
+
+**The Problem:**
+- Half-life = how long for spread to revert halfway to mean
+- GLD-IAU half-life: **628,182 days = 1,721 YEARS**
+- SPY-VOO half-life: **89,657 days = 246 YEARS**
+
+**Translation:**
+- Yes, the spread will eventually mean-revert
+- No, you won't live long enough to profit from it
+
+### Why ETFs Have This Problem
+
+Think of two S&P 500 ETFs (SPY vs VOO):
+- They hold the same 500 stocks
+- Any price difference = tiny tracking error + expense ratio
+- These differences are essentially random noise
+- The "cointegration" is mathematical, not economic
+
+### What This Means for Trading
+
+| Filter | Pairs Found |
+|--------|-------------|
+| After correlation filter | ~4,500 pairs |
+| After cointegration p-value | ~100 pairs |
+| After half-life 15-120 days | 16 pairs |
+| After 30% rolling consistency | **0 pairs** |
+
+**Reality Check:**
+- The alpha has been arbitraged away
+- Only crisis periods (2008-2009) showed profits (+2.3%)
+- Normal markets: -0.4% annual return
+
+### Updated Mental Model
+
+Old thinking:
+> "Cointegration = rubber band → spread snaps back → profit!"
+
+New thinking:
+> "Cointegration = rubber band, BUT if the band takes 200 years to snap back, there's no trade."
+
+### Key Numbers to Remember
+
+**Tradeable half-life range:**
+- Min: 15 days (need time to execute, avoid noise)
+- Max: 120 days (complete trade in reasonable time)
+- Sweet spot: 30-60 days
+
+**What we actually found:**
+- ETF half-lives: 28,000 - 628,000 days
+- That's 77 to 1,721 YEARS
+- Conclusion: ETF pairs trading is dead (for standard methods)
