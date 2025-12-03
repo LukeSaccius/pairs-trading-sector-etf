@@ -1,10 +1,13 @@
 """Download fresh ETF price data from Yahoo Finance."""
 
 import sys
-sys.path.insert(0, "I:/Winter-Break-Research/src")
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root / "src"))
 
 import yaml
-from pathlib import Path
 from pairs_trading_etf.data.ingestion import download_etf_data, save_raw_data, validate_price_data
 
 def main():

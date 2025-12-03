@@ -1,0 +1,57 @@
+# V6 Aggressive Configuration
+# Target: Higher PnL while maintaining quality
+# Based on V5 + adjustments for better returns
+
+experiment_name: "v6_aggressive"
+description: "Higher returns with controlled risk"
+
+# Cointegration Testing
+pvalue_threshold: 0.05
+min_half_life: 5.0
+max_half_life: 30.0
+use_log_prices: true
+
+# Correlation Filter  
+min_correlation: 0.70          # Slightly lower to get more pairs
+max_correlation: 0.95
+
+# Pair Selection
+top_pairs: 20                  # More pairs
+max_pairs_per_sector: 5
+max_pairs_per_etf: 2
+min_spread_range_pct: 0.025    # Slightly lower
+
+# Sector Focus
+sector_focus: true
+exclude_sectors:
+  - EMERGING
+  - BONDS_GOV
+  - HEALTHCARE
+
+# Trading Signals - BALANCED
+entry_zscore: 2.2              # Lower than V5 (2.5) for more trades
+exit_zscore: 0.3               # Tighter exit - capture more reversion
+stop_loss_zscore: 3.5          # Tighter stop - limit losses
+zscore_lookback: 60      
+
+# Hedge Ratio Filter
+min_hedge_ratio: 0.5
+max_hedge_ratio: 2.0
+
+# Position Management - MORE AGGRESSIVE
+max_holding_days: 35           # Shorter max hold
+dynamic_max_holding: true
+max_holding_multiplier: 2.5    # Tighter based on half-life
+capital_per_pair: 20000.0      # DOUBLED from 10k
+max_positions: 12              # More positions
+dynamic_hedge: true
+
+# Costs
+transaction_cost_bps: 10.0
+
+# Blacklist
+blacklist_stoploss_rate: 0.25
+blacklist_min_trades: 3
+
+# Output
+timestamped_output: true

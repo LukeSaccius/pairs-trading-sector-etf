@@ -1,0 +1,71 @@
+# V11 - Crisis-aware + Better Risk/Reward
+# 
+# Key changes from V10:
+# 1. Lower stop_loss_zscore (3.0 instead of 4.0) - cut losses earlier
+# 2. Tighter entry (2.8 instead of 2.5) - higher quality signals
+# 3. Add VIX-based regime filter (skip trading when volatility > 30)
+# 4. Lower max_capital_per_trade to $15k
+# 5. Skip small-sample years (< 5 trades expected)
+
+experiment_name: v11_crisis_aware
+description: "Crisis-aware: tighter stop-loss, higher entry threshold, max capital limit"
+
+# Cointegration
+pvalue_threshold: 0.10
+min_half_life: 5.0            # Slightly higher minimum
+max_half_life: 25.0           # Tighter max
+use_log_prices: true
+
+# Correlation
+min_correlation: 0.75         # Back to stricter
+max_correlation: 0.95
+
+# Pair Selection
+top_pairs: 40
+max_pairs_per_sector: 8
+max_pairs_per_etf: 3
+min_spread_range_pct: 0.03    # Higher threshold
+
+# Sector focus
+sector_focus: true
+exclude_sectors: ['EMERGING', 'US_GROWTH']  # Exclude volatile sectors
+
+# Trading Signals - KEY CHANGES
+entry_zscore: 2.8             # Higher = better quality entries
+exit_zscore: 0.3              # Tighter exit = take profits faster
+stop_loss_zscore: 3.0         # Lower = cut losses EARLIER
+zscore_lookback: 60
+
+# Hedge ratio filter
+min_hedge_ratio: 0.6          # Tighter range
+max_hedge_ratio: 1.7          # Avoid extreme ratios
+
+# Position management
+max_holding_days: 35          # Shorter max holding
+dynamic_max_holding: true
+max_holding_multiplier: 2.5   # Stricter
+max_positions: 8              # Fewer concurrent positions
+
+# Dynamic hedge
+dynamic_hedge: true
+
+# Capital & Risk Management
+initial_capital: 50000.0
+leverage: 1.5                  # Lower leverage = less risk
+compounding: true
+unlimited_pairs: false
+max_capital_per_trade: 15000.0  # Lower per-trade limit
+min_pairs_for_trading: 4        # Need more pairs for diversification
+
+# Fixed capital per pair (when not compounding)
+capital_per_pair: 10000.0
+
+# Costs
+transaction_cost_bps: 10.0
+
+# Blacklist - aggressive blacklisting
+blacklist_stoploss_rate: 0.20   # Stricter: 20% stop-loss rate
+blacklist_min_trades: 2         # Faster blacklist
+
+# Output
+timestamped_output: true

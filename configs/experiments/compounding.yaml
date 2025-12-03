@@ -1,0 +1,61 @@
+# V9: Compounding Strategy with Leverage
+# Target: Beat SPY returns (10%+/year) with realistic capital
+# Starting Capital: $50k with 2x leverage = $100k buying power
+
+experiment_name: "v9_compounding"
+description: "Realistic strategy: $50k capital, 2x leverage, compounding"
+
+# Cointegration Testing - Keep quality but not too strict
+pvalue_threshold: 0.05           # Standard (0.01 too strict)
+min_half_life: 5.0
+max_half_life: 25.0              # Tighter range
+use_log_prices: true
+
+# Correlation Filter
+min_correlation: 0.75
+max_correlation: 0.95
+
+# Pair Selection - NO LIMITS
+top_pairs: 100                   # Effectively unlimited
+max_pairs_per_sector: 20         # High limit
+max_pairs_per_etf: 5             # High limit
+min_spread_range_pct: 0.03
+unlimited_pairs: true            # NEW: Remove pair limits
+
+# Sector Focus - LESS EXCLUSIONS
+sector_focus: true
+exclude_sectors:
+  - EMERGING                     # Too volatile
+
+# Trading Signals
+entry_zscore: 2.5                # High quality entries
+exit_zscore: 0.5
+stop_loss_zscore: 4.0
+zscore_lookback: 60
+
+# Hedge Ratio Filter
+min_hedge_ratio: 0.5
+max_hedge_ratio: 2.0
+
+# Position Management
+max_holding_days: 40
+dynamic_max_holding: true
+max_holding_multiplier: 3.0
+max_positions: 0                 # 0 = unlimited positions
+dynamic_hedge: true
+
+# Capital & Leverage - NEW
+initial_capital: 50000.0         # $50k starting capital
+leverage: 2.0                    # 2x leverage
+compounding: true                # Compound returns
+capital_per_pair: 10000.0        # Fallback if not compounding
+
+# Costs
+transaction_cost_bps: 10.0
+
+# Blacklist
+blacklist_stoploss_rate: 0.25
+blacklist_min_trades: 3
+
+# Output
+timestamped_output: true

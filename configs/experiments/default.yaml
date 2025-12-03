@@ -1,0 +1,70 @@
+# Default Configuration for Pairs Trading Backtest
+# This is the v4 optimized configuration that achieved +$2,298 on 2010-2024
+
+experiment_name: default
+description: "Default v4 configuration - sector focus, exclude underperformers"
+
+# Time Windows
+formation_days: 252
+trading_days: 252
+hedge_update_days: 63  # Quarterly
+
+# Cointegration Testing
+pvalue_threshold: 0.05
+min_half_life: 5.0
+max_half_life: 30.0
+use_log_prices: true
+
+# Correlation Filter
+min_correlation: 0.75
+max_correlation: 0.95
+
+# Rolling Consistency (disabled for more trades)
+rolling_consistency: false
+n_rolling_windows: 4
+min_passing_windows: 2
+
+# Pair Selection
+top_pairs: 20
+max_pairs_per_sector: 5
+max_pairs_per_etf: 2
+min_spread_range_pct: 0.02
+
+# Sector Focus
+sector_focus: true
+exclude_sectors:
+  - EMERGING
+  - BONDS_GOV
+  - US_GROWTH
+  - INDUSTRIALS
+  - HEALTHCARE
+
+# Trading Signals
+entry_zscore: 2.0
+exit_zscore: 0.5
+stop_loss_zscore: 4.0
+zscore_lookback: 60
+
+# Position Management
+max_holding_days: 45
+capital_per_pair: 10000.0
+max_positions: 10
+dynamic_hedge: true
+
+# Transaction Costs
+transaction_cost_bps: 10.0
+
+# Blacklist
+blacklist_stoploss_rate: 0.30
+blacklist_min_trades: 3
+
+# Output
+output_dir: results
+save_trades: true
+save_summary: true
+save_config_snapshot: true
+timestamped_output: true
+
+# Data Paths
+price_data_path: data/raw/etf_prices_fresh.csv
+etf_metadata_path: configs/etf_metadata.yaml

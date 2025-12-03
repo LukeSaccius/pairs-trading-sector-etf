@@ -1,0 +1,109 @@
+avg_holding_days: 8.868217054263566
+avg_loser: -69.06122966330874
+avg_pnl: 16.11596261401852
+avg_winner: 127.15051683267725
+by_exit_reason:
+  convergence:
+    avg_pnl: 175.9575407789833
+    total_pnl: 4926.811141811532
+    trades: 28
+    win_rate: 100.0
+  max_holding:
+    avg_pnl: 16.46295967046902
+    total_pnl: 592.6665481368847
+    trades: 36
+    win_rate: 61.111111111111114
+  period_end:
+    avg_pnl: 87.2841697076976
+    total_pnl: 87.2841697076976
+    trades: 1
+    win_rate: 100.0
+  stop_loss:
+    avg_pnl: -55.12191691324571
+    total_pnl: -3527.8026824477256
+    trades: 64
+    win_rate: 7.8125
+by_sector:
+  ASIA_DEV:
+    avg_pnl: 28.49732572063518
+    total_pnl: 455.9572115301629
+    trades: 16
+    win_rate: 37.5
+  BONDS_GOV:
+    avg_pnl: -68.88685628580035
+    total_pnl: -275.5474251432014
+    trades: 4
+    win_rate: 25.0
+  COMMODITIES:
+    avg_pnl: 128.59802764669416
+    total_pnl: 257.1960552933883
+    trades: 2
+    win_rate: 100.0
+  CONSUMER_DISC:
+    avg_pnl: -8.01635697826076
+    total_pnl: -32.06542791304304
+    trades: 4
+    win_rate: 25.0
+  ENERGY:
+    avg_pnl: 143.0732755324985
+    total_pnl: 143.0732755324985
+    trades: 1
+    win_rate: 100.0
+  EUROPE:
+    avg_pnl: 32.25906751278682
+    total_pnl: 2161.357523356717
+    trades: 67
+    win_rate: 49.25373134328358
+  FINANCIALS:
+    avg_pnl: -27.895710821631255
+    total_pnl: -167.37426492978753
+    trades: 6
+    win_rate: 33.33333333333333
+  HEALTHCARE:
+    avg_pnl: -16.07352668557116
+    total_pnl: -128.58821348456928
+    trades: 8
+    win_rate: 37.5
+  INDUSTRIALS:
+    avg_pnl: -65.2741644360791
+    total_pnl: -130.5483288721582
+    trades: 2
+    win_rate: 0.0
+  US_BROAD:
+    avg_pnl: -20.355568428624444
+    total_pnl: -244.26682114349333
+    trades: 12
+    win_rate: 25.0
+  US_SMALL:
+    avg_pnl: -4.572239451683992
+    total_pnl: -27.43343671010395
+    trades: 6
+    win_rate: 50.0
+  US_VALUE:
+    avg_pnl: 67.19902969197935
+    total_pnl: 67.19902969197935
+    trades: 1
+    win_rate: 100.0
+losing_trades: 73
+max_drawdown: 992.392886476274
+profit_factor: !!python/object/apply:numpy._core.multiarray.scalar
+- !!python/object/apply:numpy.dtype
+  args:
+  - f8
+  - false
+  - true
+  state: !!python/tuple
+  - 3
+  - <
+  - null
+  - null
+  - null
+  - -1
+  - -1
+  - 0
+- !!binary |
+  V95lAhOZ9j8=
+total_pnl: 2078.959177208389
+total_trades: 129
+win_rate: 43.41085271317829
+winning_trades: 56

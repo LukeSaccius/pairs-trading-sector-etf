@@ -1,0 +1,59 @@
+# Aggressive Configuration - Higher Risk/Reward
+# More relaxed filters, more sectors, more trades
+
+experiment_name: aggressive
+description: "Aggressive settings - relaxed filters, more sectors"
+
+# Time Windows
+formation_days: 252
+trading_days: 252
+hedge_update_days: 63
+
+# Cointegration Testing - RELAXED
+pvalue_threshold: 0.05
+min_half_life: 3.0  # Allow faster mean reversion
+max_half_life: 45.0  # Allow slower too
+use_log_prices: true
+
+# Correlation Filter - WIDER
+min_correlation: 0.70
+max_correlation: 0.95
+
+# Rolling Consistency - DISABLED
+rolling_consistency: false
+n_rolling_windows: 4
+min_passing_windows: 2
+
+# Pair Selection - MORE
+top_pairs: 25
+max_pairs_per_sector: 7
+max_pairs_per_etf: 3
+min_spread_range_pct: 0.01  # Lower minimum
+
+# Sector Focus - MORE SECTORS
+sector_focus: true
+exclude_sectors:
+  - EMERGING  # Only exclude worst performer
+
+# Trading Signals - EARLIER ENTRY
+entry_zscore: 1.5
+exit_zscore: 0.3
+stop_loss_zscore: 4.0
+zscore_lookback: 60
+
+# Position Management
+max_holding_days: 60  # Longer max hold
+capital_per_pair: 10000.0
+max_positions: 15  # More concurrent positions
+dynamic_hedge: true
+
+# Transaction Costs
+transaction_cost_bps: 10.0
+
+# Blacklist - RELAXED
+blacklist_stoploss_rate: 0.35
+blacklist_min_trades: 4
+
+# Output
+output_dir: results
+timestamped_output: true

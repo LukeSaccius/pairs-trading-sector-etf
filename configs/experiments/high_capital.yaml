@@ -1,0 +1,59 @@
+# V7: High Capital Configuration
+# Target: Scale up capital to achieve $50k+ PnL
+# Based on V5 which has best quality metrics
+
+experiment_name: "v7_high_capital"
+description: "V5 with 10x capital"
+
+# Cointegration Testing
+pvalue_threshold: 0.05
+min_half_life: 5.0
+max_half_life: 30.0
+use_log_prices: true
+
+# Correlation Filter
+min_correlation: 0.75
+max_correlation: 0.95
+
+# Pair Selection
+top_pairs: 15
+max_pairs_per_sector: 4
+max_pairs_per_etf: 2
+min_spread_range_pct: 0.03
+
+# Sector Focus
+sector_focus: true
+exclude_sectors:
+  - EMERGING
+  - BONDS_GOV
+  - US_GROWTH
+  - INDUSTRIALS
+  - HEALTHCARE
+
+# Trading Signals - Same as V5
+entry_zscore: 2.5
+exit_zscore: 0.5
+stop_loss_zscore: 4.0
+zscore_lookback: 60
+
+# Hedge Ratio Filter
+min_hedge_ratio: 0.5
+max_hedge_ratio: 2.0
+
+# Position Management - 10x CAPITAL
+max_holding_days: 40
+dynamic_max_holding: true
+max_holding_multiplier: 3.0
+capital_per_pair: 100000.0       # 10x increase from $10k
+max_positions: 8
+dynamic_hedge: true
+
+# Costs
+transaction_cost_bps: 10.0
+
+# Blacklist
+blacklist_stoploss_rate: 0.25
+blacklist_min_trades: 3
+
+# Output
+timestamped_output: true

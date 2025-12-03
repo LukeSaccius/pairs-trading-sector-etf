@@ -1,0 +1,70 @@
+# V10 - Improved risk management
+# 
+# Key changes from V9:
+# 1. max_capital_per_trade: $20k limit (prevents over-concentration)
+# 2. min_pairs_for_trading: 3 (skip years with too few pairs)
+# 3. Looser filters to get more pairs: pvalue 0.10, HL 4-30
+# 4. max_positions: 10 (better capital allocation)
+
+experiment_name: v10_risk_managed
+description: "Improved risk management: max capital per trade, min pairs requirement"
+
+# Cointegration - LOOSER to get more pairs
+pvalue_threshold: 0.10        # Looser than 0.05
+min_half_life: 4.0            # Accept faster pairs
+max_half_life: 30.0           # Wider range
+use_log_prices: true
+
+# Correlation
+min_correlation: 0.70         # Slightly looser
+max_correlation: 0.95
+
+# Pair Selection - allow more pairs
+top_pairs: 50                 # Select more
+max_pairs_per_sector: 10
+max_pairs_per_etf: 4
+min_spread_range_pct: 0.025   # Slightly lower
+
+# Sector focus
+sector_focus: true
+exclude_sectors: ['EMERGING']
+
+# Trading Signals
+entry_zscore: 2.5             # High quality entries
+exit_zscore: 0.5
+stop_loss_zscore: 4.0
+zscore_lookback: 60
+
+# Hedge ratio filter
+min_hedge_ratio: 0.5
+max_hedge_ratio: 2.0
+
+# Position management
+max_holding_days: 45
+dynamic_max_holding: true
+max_holding_multiplier: 3.0
+max_positions: 10             # Fixed positions, not unlimited
+
+# Dynamic hedge
+dynamic_hedge: true
+
+# Capital & Risk Management - KEY CHANGES
+initial_capital: 50000.0
+leverage: 2.0
+compounding: true
+unlimited_pairs: false         # Use top_pairs limit
+max_capital_per_trade: 20000.0 # NEW: Limit per trade
+min_pairs_for_trading: 3       # NEW: Skip years with few pairs
+
+# Fixed capital per pair (when not compounding)
+capital_per_pair: 10000.0
+
+# Costs
+transaction_cost_bps: 10.0
+
+# Blacklist
+blacklist_stoploss_rate: 0.25
+blacklist_min_trades: 3
+
+# Output
+timestamped_output: true

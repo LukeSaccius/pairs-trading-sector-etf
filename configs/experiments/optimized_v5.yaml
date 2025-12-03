@@ -1,0 +1,63 @@
+# Optimized V5 Configuration
+# Based on empirical analysis of winning vs losing trades
+# Key improvements:
+# 1. Hedge ratio filter (0.5-2.0) - avoids directional bets
+# 2. Higher entry z-score (2.5) - better quality entries
+# 3. Dynamic max holding based on half-life
+# 4. Prefer balanced hedge ratios in scoring
+
+experiment_name: "v5_optimized"
+description: "Optimized settings based on win/loss analysis"
+
+# Cointegration Testing
+pvalue_threshold: 0.05
+min_half_life: 5.0
+max_half_life: 30.0
+use_log_prices: true
+
+# Correlation Filter  
+min_correlation: 0.75
+max_correlation: 0.95
+
+# Pair Selection
+top_pairs: 15
+max_pairs_per_sector: 4
+max_pairs_per_etf: 2
+min_spread_range_pct: 0.03  # Slightly higher for quality
+
+# Sector Focus
+sector_focus: true
+exclude_sectors:
+  - EMERGING
+  - BONDS_GOV
+  - US_GROWTH
+  - INDUSTRIALS
+  - HEALTHCARE
+
+# Trading Signals - IMPROVED
+entry_zscore: 2.5        # Higher threshold = better quality entries
+exit_zscore: 0.5         
+stop_loss_zscore: 4.0    
+zscore_lookback: 60      
+
+# Hedge Ratio Filter - NEW
+min_hedge_ratio: 0.5     # Avoid imbalanced positions
+max_hedge_ratio: 2.0     # Avoid over-hedging
+
+# Position Management - IMPROVED
+max_holding_days: 40             # Reduced from 45
+dynamic_max_holding: true        # Scale by half-life
+max_holding_multiplier: 3.0      # max_hold = min(3 * half_life, 40)
+capital_per_pair: 10000.0
+max_positions: 8                 # Reduced for quality over quantity
+dynamic_hedge: true
+
+# Costs
+transaction_cost_bps: 10.0
+
+# Blacklist
+blacklist_stoploss_rate: 0.25    # More aggressive blacklisting
+blacklist_min_trades: 3
+
+# Output
+timestamped_output: true

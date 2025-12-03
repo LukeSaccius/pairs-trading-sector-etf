@@ -1,0 +1,67 @@
+# Conservative Configuration - Lower Risk
+# Stricter filters, focus on highest quality pairs
+
+experiment_name: conservative
+description: "Conservative settings - strict p-value, best sectors only"
+
+# Time Windows
+formation_days: 252
+trading_days: 252
+hedge_update_days: 63
+
+# Cointegration Testing - STRICTER
+pvalue_threshold: 0.01  # Much stricter than default 0.05
+min_half_life: 5.0
+max_half_life: 15.0  # Faster mean reversion only
+use_log_prices: true
+
+# Correlation Filter - TIGHTER
+min_correlation: 0.80
+max_correlation: 0.95
+
+# Rolling Consistency - ENABLED for quality
+rolling_consistency: true
+n_rolling_windows: 4
+min_passing_windows: 2
+
+# Pair Selection - FEWER
+top_pairs: 10
+max_pairs_per_sector: 3
+max_pairs_per_etf: 1
+min_spread_range_pct: 0.03  # Higher minimum
+
+# Sector Focus - BEST SECTORS ONLY
+sector_focus: true
+exclude_sectors:
+  - EMERGING
+  - BONDS_GOV
+  - BONDS_CORP
+  - US_GROWTH
+  - INDUSTRIALS
+  - HEALTHCARE
+  - COMMODITIES
+  - US_SMALL
+  - ENERGY
+
+# Trading Signals
+entry_zscore: 2.0
+exit_zscore: 0.5
+stop_loss_zscore: 3.5  # Tighter stop
+zscore_lookback: 60
+
+# Position Management
+max_holding_days: 30  # Shorter max hold
+capital_per_pair: 10000.0
+max_positions: 5  # Fewer concurrent positions
+dynamic_hedge: true
+
+# Transaction Costs
+transaction_cost_bps: 10.0
+
+# Blacklist - STRICTER
+blacklist_stoploss_rate: 0.25
+blacklist_min_trades: 2
+
+# Output
+output_dir: results
+timestamped_output: true

@@ -1,0 +1,99 @@
+avg_holding_days: 14.23943661971831
+avg_loser: -105.66852258392561
+avg_pnl: 23.145156079312958
+avg_winner: 88.9223536945837
+by_exit_reason:
+  convergence:
+    avg_pnl: 98.09606975543582
+    total_pnl: 3825.746720461997
+    trades: 39
+    win_rate: 97.43589743589743
+  max_holding:
+    avg_pnl: -54.15000482530225
+    total_pnl: -1570.3501399337651
+    trades: 29
+    win_rate: 31.03448275862069
+  period_end:
+    avg_pnl: -11.910998443900915
+    total_pnl: -11.910998443900915
+    trades: 1
+    win_rate: 0.0
+  stop_loss:
+    avg_pnl: -300.0897502265553
+    total_pnl: -600.1795004531106
+    trades: 2
+    win_rate: 0.0
+by_sector:
+  ASIA_DEV:
+    avg_pnl: -17.69377842465237
+    total_pnl: -88.46889212326184
+    trades: 5
+    win_rate: 60.0
+  BONDS_CORP:
+    avg_pnl: -1.734239888307866
+    total_pnl: -6.936959553231464
+    trades: 4
+    win_rate: 50.0
+  COMMODITIES:
+    avg_pnl: -174.0205840594412
+    total_pnl: -348.0411681188824
+    trades: 2
+    win_rate: 0.0
+  CONSUMER_DISC:
+    avg_pnl: 42.50105411252427
+    total_pnl: 170.0042164500971
+    trades: 4
+    win_rate: 75.0
+  ENERGY:
+    avg_pnl: 122.45604838822631
+    total_pnl: 122.45604838822631
+    trades: 1
+    win_rate: 100.0
+  EUROPE:
+    avg_pnl: 57.66527554438032
+    total_pnl: 1672.2929907870293
+    trades: 29
+    win_rate: 82.75862068965517
+  FINANCIALS:
+    avg_pnl: -3.8541095578103617
+    total_pnl: -57.811643367155426
+    trades: 15
+    win_rate: 53.333333333333336
+  US_BROAD:
+    avg_pnl: 32.1672485479688
+    total_pnl: 257.3379883837504
+    trades: 8
+    win_rate: 50.0
+  US_SMALL:
+    avg_pnl: -42.77908773817699
+    total_pnl: -85.55817547635398
+    trades: 2
+    win_rate: 50.0
+  US_VALUE:
+    avg_pnl: 8.031676261002456
+    total_pnl: 8.031676261002456
+    trades: 1
+    win_rate: 100.0
+losing_trades: 24
+max_drawdown: 868.1101035408999
+profit_factor: !!python/object/apply:numpy._core.multiarray.scalar
+- !!python/object/apply:numpy.dtype
+  args:
+  - f8
+  - false
+  - true
+  state: !!python/tuple
+  - 3
+  - <
+  - null
+  - null
+  - null
+  - -1
+  - -1
+  - 0
+- !!binary |
+  aoNaQCBe+j8=
+total_pnl: 1643.30608163122
+total_trades: 71
+win_rate: 66.19718309859155
+winning_trades: 47
