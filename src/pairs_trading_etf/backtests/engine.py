@@ -7,6 +7,7 @@ This module provides the core trading simulation loop, including:
 - Z-score signal generation
 - Position management and trade execution
 - Dynamic hedge ratio updates
+- Vidyamurthy Framework: SNR, Zero-Crossing Rate, Time-based Stops
 """
 
 from __future__ import annotations
@@ -28,6 +29,646 @@ logger = logging.getLogger(__name__)
 
 
 # =============================================================================
+# VIDYAMURTHY FRAMEWORK - SNR & TRADABILITY METRICS
+# =============================================================================
+
+def calculate_snr(spread: pd.Series, half_life: float) -> float:
+    """
+    Calculate Signal-to-Noise Ratio (SNR) per Vidyamurthy Ch.6.
+    
+    SNR = σ_stationary / σ_nonstationary
+    
+    For a mean-reverting spread:
+    - σ_stationary = standard deviation of the spread
+    - σ_nonstationary = standard deviation of innovations (changes)
+    
+    Higher SNR indicates stronger cointegration (mean-reverting vs noise).
+    
+    Parameters
+    ----------
+    spread : pd.Series
+        Cointegration spread (residuals)
+    half_life : float
+        Half-life in days
+        
+    Returns
+    -------
+    float
+        SNR ratio (typically want SNR >= 2.0)
+    """
+    if len(spread) < 30:
+        return 0.0
+    
+    # Standard deviation of spread (stationary component)
+    sigma_stationary = spread.std()
+    
+    # Standard deviation of changes (non-stationary/noise component)
+    spread_diff = spread.diff().dropna()
+    sigma_noise = spread_diff.std()
+    
+    if sigma_noise == 0 or np.isnan(sigma_noise):
+        return 0.0
+    
+    snr = sigma_stationary / sigma_noise
+    return float(snr)
+
+
+def calculate_zero_crossing_rate(spread: pd.Series, lookback: int = 252) -> Tuple[float, float]:
+    """
+    Calculate Zero-Crossing Rate per Vidyamurthy Ch.7.
+    
+    The zero-crossing rate measures how frequently the spread crosses 
+    its equilibrium (mean). Higher rate = more tradeable.
+    
+    Also calculates expected holding period:
+    E[holding_period] ≈ trading_days / (2 * zero_crossings)
+    
+    Parameters
+    ----------
+    spread : pd.Series
+        Cointegration spread
+    lookback : int
+        Period for calculation (default 252 = 1 year)
+        
+    Returns
+    -------
+    tuple
+        (zero_crossing_rate_per_year, expected_holding_days)
+    """
+    if len(spread) < 30:
+        return 0.0, float('inf')
+    
+    # Use last N days
+    s = spread.iloc[-lookback:] if len(spread) > lookback else spread
+    
+    # Demean the spread
+    demeaned = s - s.mean()
+    
+    # Count zero crossings
+    signs = np.sign(demeaned.values)
+    signs[signs == 0] = 1  # Treat exactly 0 as positive
+    
+    crossings = np.sum(signs[1:] != signs[:-1])
+    
+    # Annualize
+    n_days = len(s)
+    zcr_annual = crossings * (252 / n_days)
+    
+    # Expected holding period (time between entries and exits)
+    # Vidyamurthy: E[T] ≈ N / (2 * crossings) where N is number of observations
+    if crossings > 0:
+        expected_holding = n_days / (2.0 * crossings)
+    else:
+        expected_holding = float('inf')
+    
+    return float(zcr_annual), float(expected_holding)
+
+
+def bootstrap_holding_period(spread: pd.Series, n_simulations: int = 1000) -> Dict[str, float]:
+    """
+    Bootstrap estimate of holding period distribution per Vidyamurthy Ch.7.
+    
+    Resamples the time between zero crossings to estimate
+    the distribution of expected holding periods.
+    
+    Parameters
+    ----------
+    spread : pd.Series
+        Cointegration spread
+    n_simulations : int
+        Number of bootstrap samples
+        
+    Returns
+    -------
+    dict
+        {'mean': mean_holding, 'median': median, 'p25': 25th, 'p75': 75th}
+    """
+    if len(spread) < 30:
+        return {'mean': float('inf'), 'median': float('inf'), 'p25': float('inf'), 'p75': float('inf')}
+    
+    # Find crossing times
+    demeaned = spread - spread.mean()
+    signs = np.sign(demeaned.values)
+    signs[signs == 0] = 1
+    
+    crossing_indices = np.where(signs[1:] != signs[:-1])[0]
+    
+    if len(crossing_indices) < 3:
+        return {'mean': float('inf'), 'median': float('inf'), 'p25': float('inf'), 'p75': float('inf')}
+    
+    # Calculate inter-crossing times
+    inter_crossing_times = np.diff(crossing_indices)
+    
+    # Bootstrap
+    bootstrap_means = []
+    n = len(inter_crossing_times)
+    
+    for _ in range(n_simulations):
+        sample = np.random.choice(inter_crossing_times, size=n, replace=True)
+        bootstrap_means.append(sample.mean())
+    
+    bootstrap_means = np.array(bootstrap_means)
+    
+    return {
+        'mean': float(np.mean(bootstrap_means)),
+        'median': float(np.median(bootstrap_means)),
+        'p25': float(np.percentile(bootstrap_means, 25)),
+        'p75': float(np.percentile(bootstrap_means, 75)),
+    }
+
+
+def calculate_factor_correlation(series_x: pd.Series, series_y: pd.Series) -> float:
+    """
+    Calculate common factor correlation per Vidyamurthy APT model.
+    
+    High correlation between price series indicates they share
+    common factor exposure (good for pairs trading).
+    
+    Parameters
+    ----------
+    series_x : pd.Series
+        First price series
+    series_y : pd.Series
+        Second price series
+        
+    Returns
+    -------
+    float
+        Correlation coefficient (want >= 0.85)
+    """
+    aligned = pd.concat([series_x, series_y], axis=1, join='inner').dropna()
+    if len(aligned) < 30:
+        return 0.0
+    
+    # Use log returns for correlation
+    returns_x = np.log(aligned.iloc[:, 0]).diff().dropna()
+    returns_y = np.log(aligned.iloc[:, 1]).diff().dropna()
+    
+    corr = returns_x.corr(returns_y)
+    return float(corr) if not np.isnan(corr) else 0.0
+
+
+def calculate_time_based_stop(
+    entry_z: float,
+    current_z: float,
+    holding_days: int,
+    half_life: float,
+    base_stop_zscore: float,
+    tightening_rate: float = 0.1,
+) -> Tuple[bool, float]:
+    """
+    Time-based stop tightening per Vidyamurthy insight.
+    
+    "The mere passage of time represents an increase in risk"
+    
+    As holding period exceeds half-life, the stop loss tightens,
+    because the probability of mean reversion decreases.
+    
+    Parameters
+    ----------
+    entry_z : float
+        Z-score at entry
+    current_z : float
+        Current z-score
+    holding_days : int
+        Days held
+    half_life : float
+        Expected half-life
+    base_stop_zscore : float
+        Base stop-loss threshold
+    tightening_rate : float
+        Rate of stop tightening per half-life elapsed
+        
+    Returns
+    -------
+    tuple
+        (should_stop, effective_stop_zscore)
+    """
+    # Calculate how many half-lives have passed
+    half_lives_passed = holding_days / max(half_life, 1)
+    
+    # Only start tightening after 1 full half-life has passed
+    if half_lives_passed < 1.0:
+        return False, base_stop_zscore
+    
+    # Tighten stop as more half-lives pass (starts after 1 HL)
+    # After 1 HL: start tightening
+    # After 2 HL: stop tightens by tightening_rate
+    excess_hl = half_lives_passed - 1.0
+    tightening = excess_hl * tightening_rate * base_stop_zscore
+    
+    # Effective stop gets closer to entry z
+    effective_stop = base_stop_zscore - tightening
+    effective_stop = max(effective_stop, 1.5)  # Floor at z=1.5 (less aggressive)
+    
+    # Check if stop triggered - the position is getting WORSE (diverging)
+    # For long spread (entered at negative z): stop if z goes MORE negative
+    # For short spread (entered at positive z): stop if z goes MORE positive
+    direction = np.sign(entry_z)  # -1 for long spread, +1 for short spread
+    
+    if direction < 0:  # Long spread (entered at negative z)
+        # Stop if z is MORE negative than effective_stop (diverging)
+        should_stop = current_z <= -effective_stop
+    else:  # Short spread (entered at positive z)
+        # Stop if z is MORE positive than effective_stop (diverging)
+        should_stop = current_z >= effective_stop
+    
+    return should_stop, effective_stop
+
+
+# =============================================================================
+# KALMAN FILTER FOR DYNAMIC HEDGE RATIO
+# =============================================================================
+# Implementation based on Palomar (2025) Chapter 15.6 "Kalman Filtering for Pairs Trading"
+# and the extended momentum model from Section 15.6.3 equation (15.4)
+
+def estimate_kalman_hedge_ratio(
+    series_x: pd.Series,
+    series_y: pd.Series,
+    use_log: bool = True,
+    delta: float = 0.00001,
+    vw: float = 0.001,
+    use_momentum: bool = True,
+) -> pd.DataFrame:
+    """
+    Estimate time-varying hedge ratio using Kalman Filter.
+    
+    Based on Palomar (2025) Chapter 15.6 "Kalman Filtering for Pairs Trading".
+    
+    Basic Model (Section 15.6.3, Eq. 15.3):
+        y_t = [1, x_t] @ [μ_t, γ_t]' + ε_t    (observation)
+        [μ_{t+1}, γ_{t+1}]' = I @ [μ_t, γ_t]' + η_t  (random walk state)
+    
+    Extended Momentum Model (Eq. 15.4):
+        State: [μ_t, γ_t, γ̇_t]' where γ̇ is hedge ratio velocity
+        Observation: y_t = [1, x_t, 0] @ state + ε_t
+        State transition:
+            μ_{t+1} = μ_t + η_μ
+            γ_{t+1} = γ_t + γ̇_t + η_γ  (local linear trend)
+            γ̇_{t+1} = γ̇_t + η_γ̇
+    
+    The momentum model produces SMOOTHER hedge ratio estimates because it
+    models the rate of change, acting as regularization.
+    
+    Parameters
+    ----------
+    series_x : pd.Series
+        Independent variable (price series)
+    series_y : pd.Series
+        Dependent variable (price series)
+    use_log : bool
+        Whether to use log prices (recommended per book)
+    delta : float
+        Process noise scaling factor. Controls how fast state can change.
+        Typical values: 1e-5 to 1e-6 (smaller = more stable)
+    vw : float
+        Initial observation noise variance (will be adapted online)
+    use_momentum : bool
+        If True, use the extended momentum model (Eq. 15.4)
+        If False, use the basic 2-state model (Eq. 15.3)
+        
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with columns: hedge_ratio, intercept, spread
+        
+    References
+    ----------
+    - Palomar (2025) "Portfolio Optimization", Chapter 15
+    - Chan (2013) "Algorithmic Trading", Chapter 3
+    - Vidyamurthy (2004) "Pairs Trading"
+    """
+    # Align series
+    aligned = pd.concat([series_x, series_y], axis=1, join='inner').dropna()
+    if len(aligned) < 30:
+        return None
+    
+    x = aligned.iloc[:, 0].values.astype(float)
+    y = aligned.iloc[:, 1].values.astype(float)
+    
+    if use_log:
+        x = np.log(x)
+        y = np.log(y)
+    
+    n = len(x)
+    
+    # Initialize with OLS estimate (as recommended by Palomar Section 15.6.3)
+    slope, intercept, _, _, _ = stats.linregress(x, y)
+    residuals = y - intercept - slope * x
+    sigma_epsilon = np.std(residuals)
+    
+    if use_momentum:
+        # Extended Momentum Model (Eq. 15.4)
+        # State: [intercept, hedge_ratio, hedge_ratio_velocity]
+        return _kalman_momentum_model(
+            x, y, n, intercept, slope, sigma_epsilon, delta, vw, aligned.index
+        )
+    else:
+        # Basic 2-State Model (Eq. 15.3)
+        return _kalman_basic_model(
+            x, y, n, intercept, slope, sigma_epsilon, delta, vw, aligned.index
+        )
+
+
+def _kalman_basic_model(
+    x: np.ndarray,
+    y: np.ndarray,
+    n: int,
+    intercept: float,
+    slope: float,
+    sigma_epsilon: float,
+    delta: float,
+    vw: float,
+    index: pd.Index,
+) -> pd.DataFrame:
+    """
+    Basic 2-state Kalman filter (Palomar Eq. 15.3).
+    
+    State: [μ_t, γ_t]' (intercept, hedge_ratio)
+    Observation: y_t = [1, x_t] @ state + ε_t
+    State transition: Random walk (identity matrix)
+    """
+    # State: [intercept, hedge_ratio]
+    theta = np.array([[intercept], [slope]])
+    
+    # State covariance - initialize based on OLS variance (per Palomar)
+    P = np.eye(2)
+    P[0, 0] = sigma_epsilon ** 2  # Variance of intercept
+    P[1, 1] = sigma_epsilon ** 2 / np.var(x)  # Variance of slope
+    
+    # Process noise - standard formulation Q = delta * I
+    # (Note: old code used delta/(1-delta) which is non-standard)
+    Q = delta * np.eye(2)
+    
+    # Observation noise - will be adapted online
+    R = vw
+    
+    # Storage
+    hedge_ratios = np.zeros(n)
+    intercepts = np.zeros(n)
+    spreads = np.zeros(n)
+    
+    for t in range(n):
+        # Observation matrix: y_t = [1, x_t] @ [intercept, slope]'
+        F = np.array([[1.0, x[t]]])
+        
+        # === Prediction Step ===
+        # State prediction: theta_{t|t-1} = theta_{t-1} (random walk)
+        # Covariance prediction: P_{t|t-1} = P_{t-1} + Q
+        P = P + Q
+        
+        # === Update Step ===
+        # Innovation (prediction error)
+        y_pred = (F @ theta)[0, 0]
+        innovation = y[t] - y_pred
+        
+        # Innovation covariance
+        S = (F @ P @ F.T)[0, 0] + R
+        
+        # Kalman gain
+        K = (P @ F.T) / S
+        
+        # State update
+        theta = theta + K * innovation
+        
+        # Covariance update (Joseph form for numerical stability)
+        I_KF = np.eye(2) - K @ F
+        P = I_KF @ P @ I_KF.T + (K * R) @ K.T
+        
+        # Adaptive observation variance (exponential smoothing)
+        # This helps the filter adapt to changing market volatility
+        R = 0.99 * R + 0.01 * (innovation ** 2)
+        R = max(R, 1e-8)  # Prevent numerical issues
+        
+        # Store results
+        intercepts[t] = theta[0, 0]
+        hedge_ratios[t] = theta[1, 0]
+        # Spread = y - intercept - hedge_ratio * x (residual, should be mean-zero)
+        spreads[t] = y[t] - theta[0, 0] - theta[1, 0] * x[t]
+    
+    return pd.DataFrame({
+        'hedge_ratio': hedge_ratios,
+        'intercept': intercepts,
+        'spread': spreads,
+    }, index=index)
+
+
+def _kalman_momentum_model(
+    x: np.ndarray,
+    y: np.ndarray,
+    n: int,
+    intercept: float,
+    slope: float,
+    sigma_epsilon: float,
+    delta: float,
+    vw: float,
+    index: pd.Index,
+) -> pd.DataFrame:
+    """
+    Extended Kalman filter with momentum (Palomar Eq. 15.4).
+    
+    This model tracks the VELOCITY of the hedge ratio, producing smoother
+    estimates. This is the "local linear trend" model commonly used in
+    time series analysis.
+    
+    State: [μ_t, γ_t, γ̇_t]' (intercept, hedge_ratio, hedge_ratio_velocity)
+    
+    State Transition Matrix:
+        A = [[1, 0, 0],    # μ_{t+1} = μ_t
+             [0, 1, 1],    # γ_{t+1} = γ_t + γ̇_t
+             [0, 0, 1]]    # γ̇_{t+1} = γ̇_t
+             
+    Observation: y_t = [1, x_t, 0] @ state + ε_t
+    
+    The key insight is that hedge ratio changes are modeled as having
+    MOMENTUM - if it's been increasing, it will likely continue increasing.
+    This smooths out noise while still adapting to regime changes.
+    """
+    # State: [intercept, hedge_ratio, hedge_ratio_velocity]
+    theta = np.array([[intercept], [slope], [0.0]])
+    
+    # State transition matrix (local linear trend)
+    A = np.array([
+        [1.0, 0.0, 0.0],  # intercept: random walk
+        [0.0, 1.0, 1.0],  # hedge_ratio: random walk + velocity
+        [0.0, 0.0, 1.0],  # velocity: random walk
+    ])
+    
+    # State covariance
+    P = np.eye(3)
+    P[0, 0] = sigma_epsilon ** 2
+    P[1, 1] = sigma_epsilon ** 2 / max(np.var(x), 1e-8)
+    P[2, 2] = delta  # Small initial velocity variance
+    
+    # Process noise - different scales for each state component
+    Q = np.diag([
+        delta,          # intercept noise
+        delta,          # hedge ratio noise
+        delta * 0.1,    # velocity noise (smaller for smoothness)
+    ])
+    
+    # Observation noise
+    R = vw
+    
+    # Storage
+    hedge_ratios = np.zeros(n)
+    intercepts = np.zeros(n)
+    spreads = np.zeros(n)
+    velocities = np.zeros(n)
+    
+    for t in range(n):
+        # Observation matrix: y_t = [1, x_t, 0] @ [intercept, hedge_ratio, velocity]'
+        F = np.array([[1.0, x[t], 0.0]])
+        
+        # === Prediction Step ===
+        # State prediction with transition
+        theta = A @ theta
+        # Covariance prediction
+        P = A @ P @ A.T + Q
+        
+        # === Update Step ===
+        # Innovation
+        y_pred = (F @ theta)[0, 0]
+        innovation = y[t] - y_pred
+        
+        # Innovation covariance
+        S = (F @ P @ F.T)[0, 0] + R
+        
+        # Kalman gain
+        K = (P @ F.T) / S
+        
+        # State update
+        theta = theta + K * innovation
+        
+        # Covariance update (Joseph form)
+        I_KF = np.eye(3) - K @ F
+        P = I_KF @ P @ I_KF.T + (K * R) @ K.T
+        
+        # Adaptive observation variance
+        R = 0.99 * R + 0.01 * (innovation ** 2)
+        R = max(R, 1e-8)
+        
+        # Store results
+        intercepts[t] = theta[0, 0]
+        hedge_ratios[t] = theta[1, 0]
+        velocities[t] = theta[2, 0]
+        spreads[t] = y[t] - theta[0, 0] - theta[1, 0] * x[t]
+    
+    return pd.DataFrame({
+        'hedge_ratio': hedge_ratios,
+        'intercept': intercepts,
+        'spread': spreads,
+        'hedge_velocity': velocities,
+    }, index=index)
+
+
+# =============================================================================
+# VIX REGIME FILTER
+# =============================================================================
+
+def check_vix_regime(
+    vix_data: Optional[pd.Series],
+    current_date: pd.Timestamp,
+    vix_threshold: float = 30.0,
+    lookback_days: int = 5,
+) -> Dict[str, Any]:
+    """
+    Check if current market regime is high volatility based on VIX.
+    
+    Parameters
+    ----------
+    vix_data : pd.Series or None
+        VIX closing prices indexed by date
+    current_date : pd.Timestamp
+        Current trading date
+    vix_threshold : float
+        VIX level above which to flag high volatility regime
+    lookback_days : int
+        Number of days to average VIX over
+        
+    Returns
+    -------
+    dict
+        Contains: is_high_vol, current_vix, avg_vix
+    """
+    if vix_data is None or len(vix_data) == 0:
+        return {
+            'is_high_vol': False,
+            'current_vix': None,
+            'avg_vix': None,
+        }
+    
+    try:
+        # Get VIX data up to current date
+        available = vix_data[vix_data.index <= current_date]
+        
+        if len(available) == 0:
+            return {'is_high_vol': False, 'current_vix': None, 'avg_vix': None}
+        
+        current_vix = available.iloc[-1]
+        avg_vix = available.iloc[-lookback_days:].mean() if len(available) >= lookback_days else available.mean()
+        
+        is_high_vol = current_vix > vix_threshold or avg_vix > vix_threshold
+        
+        return {
+            'is_high_vol': is_high_vol,
+            'current_vix': float(current_vix),
+            'avg_vix': float(avg_vix),
+        }
+    except Exception as e:
+        logger.debug(f"VIX check failed: {e}")
+        return {'is_high_vol': False, 'current_vix': None, 'avg_vix': None}
+
+
+# =============================================================================
+# VOLATILITY-ADJUSTED POSITION SIZING
+# =============================================================================
+
+def calculate_volatility_adjusted_size(
+    base_capital: float,
+    spread_volatility: float,
+    target_volatility: float = 0.02,
+    min_scale: float = 0.25,
+    max_scale: float = 2.0,
+) -> float:
+    """
+    Calculate position size adjusted for spread volatility.
+    
+    Position is scaled inversely to volatility:
+    - High volatility spread → smaller position
+    - Low volatility spread → larger position
+    
+    Parameters
+    ----------
+    base_capital : float
+        Base capital allocation for this trade
+    spread_volatility : float
+        Daily volatility of the spread
+    target_volatility : float
+        Target daily volatility for position (default 2%)
+    min_scale : float
+        Minimum position size as fraction of base (0.25 = 25%)
+    max_scale : float
+        Maximum position size as fraction of base (2.0 = 200%)
+        
+    Returns
+    -------
+    float
+        Volatility-adjusted position size
+    """
+    if spread_volatility <= 0 or np.isnan(spread_volatility):
+        return base_capital
+    
+    # Scale factor: target_vol / actual_vol
+    scale = target_volatility / spread_volatility
+    
+    # Clamp to min/max
+    scale = max(min_scale, min(max_scale, scale))
+    
+    return base_capital * scale
+
+
+# =============================================================================
 # COINTEGRATION TESTING
 # =============================================================================
 
@@ -41,6 +682,7 @@ def run_engle_granger_test(
 ) -> Optional[Dict[str, float]]:
     """
     Run Engle-Granger cointegration test on two price series.
+    
     
     Uses statsmodels.coint() which implements proper MacKinnon critical values
     for cointegration (NOT standard ADF critical values).
@@ -121,6 +763,10 @@ def run_engle_granger_test(
         spread_std = spread.std()
         spread_range = spread.max() - spread.min()
         
+        # Vidyamurthy metrics
+        snr = calculate_snr(spread, half_life)
+        zcr, expected_holding = calculate_zero_crossing_rate(spread)
+        
         return {
             'hedge_ratio': float(hedge_ratio),
             'intercept': float(intercept),
@@ -131,6 +777,10 @@ def run_engle_granger_test(
             'spread_std': float(spread_std),
             'spread_range': float(spread_range),
             'r_squared': float(r_value ** 2),
+            # Vidyamurthy metrics
+            'snr': float(snr),
+            'zero_crossing_rate': float(zcr),
+            'expected_holding': float(expected_holding),
         }
         
     except Exception as e:
@@ -192,8 +842,9 @@ def select_pairs(
     1. Filter by correlation
     2. Filter by sector (if sector_focus enabled)
     3. Test for cointegration
-    4. Score and rank pairs
-    5. Apply diversification limits
+    4. Validate pair stability (if enabled)
+    5. Score and rank pairs
+    6. Apply diversification limits
     
     Parameters
     ----------
@@ -212,6 +863,14 @@ def select_pairs(
     tickers = list(prices.columns)
     n_tickers = len(tickers)
     logger.info(f"Selecting pairs from {n_tickers} tickers")
+    
+    # Import validation functions if available
+    try:
+        from .validation import validate_pair_stability, check_rolling_consistency
+        validation_available = True
+    except ImportError:
+        validation_available = False
+        logger.debug("Validation module not available")
     
     # Step 1: Correlation filter
     returns = prices.pct_change().dropna()
@@ -245,6 +904,7 @@ def select_pairs(
     # Step 2: Cointegration test
     cointegrated = []
     results = {}
+    validation_scores = {}  # Store stability scores for ranking
     
     for pair in candidate_pairs:
         leg_x, leg_y = pair
@@ -259,29 +919,91 @@ def select_pairs(
         
         if result is not None:
             if result['spread_range'] >= cfg.min_spread_range_pct:
-                # NEW: Hedge ratio filter - avoid imbalanced positions
+                # Hedge ratio filter - avoid imbalanced positions
                 hr = abs(result['hedge_ratio'])
                 if cfg.min_hedge_ratio <= hr <= cfg.max_hedge_ratio:
-                    cointegrated.append(pair)
-                    results[pair] = result
+                    # Vidyamurthy filters: SNR and Zero-Crossing Rate
+                    snr_ok = result.get('snr', 0) >= getattr(cfg, 'min_snr', 0)
+                    zcr_ok = result.get('zero_crossing_rate', 0) >= getattr(cfg, 'min_zero_crossing_rate', 0)
+                    
+                    if snr_ok and zcr_ok:
+                        cointegrated.append(pair)
+                        results[pair] = result
+                        validation_scores[pair] = 1.0  # Default score
     
     logger.info(f"Cointegrated pairs: {len(cointegrated)}")
     
     if not cointegrated:
         return [], {}, {}, {}
     
-    # Step 3: Scoring - add hedge ratio quality score
+    # Step 2.5: Rolling consistency validation (if enabled)
+    if validation_available and getattr(cfg, 'rolling_consistency', False):
+        n_windows = getattr(cfg, 'n_rolling_windows', 4)
+        min_passing = getattr(cfg, 'min_passing_windows', 2)
+        
+        logger.info(f"Running rolling consistency check ({n_windows} windows, {min_passing} required)")
+        validated_pairs = []
+        
+        for pair in cointegrated:
+            rc_result = check_rolling_consistency(
+                prices=prices,
+                pair=pair,
+                use_log=cfg.use_log_prices,
+                pvalue_threshold=cfg.pvalue_threshold,
+                min_half_life=cfg.min_half_life,
+                max_half_life=cfg.max_half_life,
+                n_windows=n_windows,
+                min_passing=min_passing,
+            )
+            
+            if rc_result.get('passes', False):
+                validated_pairs.append(pair)
+                # Update validation score for ranking
+                validation_scores[pair] = rc_result.get('score', 1.0)
+                logger.debug(f"  {pair}: PASSED ({rc_result['passing_windows']}/{n_windows} windows)")
+            else:
+                logger.debug(f"  {pair}: FAILED ({rc_result.get('passing_windows', 0)}/{n_windows} windows)")
+        
+        removed = len(cointegrated) - len(validated_pairs)
+        logger.info(f"After rolling consistency: {len(validated_pairs)} pairs (removed {removed})")
+        cointegrated = validated_pairs
+    
+    if not cointegrated:
+        logger.warning("No pairs passed rolling consistency check")
+        return [], {}, {}, {}
+    
+    # Step 3: Scoring - include Vidyamurthy metrics and validation scores
     scores = {}
     for pair in cointegrated:
         r = results[pair]
         pvalue_score = min(-np.log(max(r['pvalue'], 1e-10)) / 7.0, 1.0)
         hl_score = max(0, 1 - abs(r['half_life'] - 15) / 15)
         range_score = min(r['spread_range'] / 0.10, 1.0)
-        # NEW: Prefer hedge ratios closer to 1.0 (balanced positions)
+        
+        # Hedge ratio quality score
         hr = abs(r['hedge_ratio'])
-        hr_score = 1.0 - abs(hr - 1.0) / 1.0  # 1.0 at HR=1, 0.5 at HR=0.5 or 1.5
+        hr_score = 1.0 - abs(hr - 1.0) / 1.0
         hr_score = max(0, min(1, hr_score))
-        scores[pair] = 0.30 * pvalue_score + 0.30 * hl_score + 0.25 * range_score + 0.15 * hr_score
+        
+        # Vidyamurthy metrics in scoring
+        snr = r.get('snr', 1.0)
+        zcr = r.get('zero_crossing_rate', 0)
+        snr_score = min(snr / 3.0, 1.0)  # Normalize to ~3.0 max
+        zcr_score = min(zcr / 20.0, 1.0)  # Normalize to ~20 crossings/year
+        
+        # Validation/stability score
+        stability_score = validation_scores.get(pair, 1.0)
+        
+        # Updated weights to include Vidyamurthy metrics and stability
+        scores[pair] = (
+            0.20 * pvalue_score + 
+            0.15 * hl_score + 
+            0.10 * range_score + 
+            0.10 * hr_score +
+            0.15 * snr_score +
+            0.15 * zcr_score +
+            0.15 * stability_score  # Stability matters!
+        )
     
     sorted_pairs = sorted(cointegrated, key=lambda p: scores[p], reverse=True)
     
@@ -402,13 +1124,73 @@ def run_trading_simulation(
     rolling_std = spreads.rolling(window=cfg.zscore_lookback, min_periods=30).std()
     zscores = (spreads - rolling_mean) / rolling_std
     
+    # Pre-compute Kalman hedge ratios if enabled
+    kalman_results = {}
+    if getattr(cfg, 'use_kalman_hedge', False):
+        use_momentum = getattr(cfg, 'kalman_use_momentum', True)
+        model_type = "momentum" if use_momentum else "basic"
+        logger.info(f"Computing Kalman filter hedge ratios ({model_type} model)...")
+        for pair in pairs:
+            leg_x, leg_y = pair
+            kalman_df = estimate_kalman_hedge_ratio(
+                prices[leg_x],
+                prices[leg_y],
+                use_log=cfg.use_log_prices,
+                delta=getattr(cfg, 'kalman_delta', 0.00001),
+                vw=getattr(cfg, 'kalman_vw', 0.001),
+                use_momentum=use_momentum,
+            )
+            if kalman_df is not None:
+                kalman_results[pair] = kalman_df
+        
+        # Replace spreads with Kalman-adjusted spreads
+        # Option 1: Use full Palomar formula (mean-zero spread, small variance)
+        # Option 2: Use only Kalman hedge ratio with OLS-style spread (no intercept)
+        # We use option 2 for compatibility with rolling z-score
+        if kalman_results:
+            logger.info("Updating spreads with Kalman hedge ratios (OLS-style)...")
+            for pair in pairs:
+                if pair in kalman_results:
+                    pair_name = pair_names[pair]
+                    leg_x, leg_y = pair
+                    
+                    kalman_df = kalman_results[pair]
+                    kalman_hr = kalman_df['hedge_ratio']
+                    
+                    # Get log prices
+                    log_x = np.log(prices[leg_x])
+                    log_y = np.log(prices[leg_y])
+                    
+                    # Compute spread with time-varying hedge ratio only (no intercept)
+                    # This is more similar to OLS spread and works better with rolling z-score
+                    common_idx = spreads.index.intersection(kalman_df.index)
+                    new_spread = log_y.loc[common_idx] - kalman_hr.loc[common_idx] * log_x.loc[common_idx]
+                    spreads.loc[common_idx, pair_name] = new_spread.values
+            
+            # Recalculate z-scores with Kalman-adjusted spreads
+            rolling_mean = spreads.rolling(window=cfg.zscore_lookback, min_periods=30).mean()
+            rolling_std = spreads.rolling(window=cfg.zscore_lookback, min_periods=30).std()
+            zscores = (spreads - rolling_mean) / rolling_std
+    
     dates = prices.index.tolist()
     
     for t in range(warmup, n_dates):
         current_date = dates[t]
         
-        # Dynamic hedge ratio update
-        if cfg.dynamic_hedge and t % cfg.hedge_update_days == 0 and t > cfg.hedge_update_days:
+        # Kalman hedge ratio update (if enabled)
+        # Spreads are already pre-computed with Kalman hedge ratios
+        # Only update current_hr for position management
+        if getattr(cfg, 'use_kalman_hedge', False):
+            for pair in pairs:
+                if pair in kalman_results and current_date in kalman_results[pair].index:
+                    if position_state[pair] == 0:  # Only update when not in position
+                        kalman_hr = kalman_results[pair].loc[current_date, 'hedge_ratio']
+                        if not np.isnan(kalman_hr):
+                            current_hr[pair] = kalman_hr
+            # Z-scores already computed from Kalman-adjusted spreads
+        
+        # Dynamic hedge ratio update (OLS-based, if not using Kalman)
+        elif cfg.dynamic_hedge and t % cfg.hedge_update_days == 0 and t > cfg.hedge_update_days:
             for pair in pairs:
                 try:
                     new_hr, _ = update_hedge_ratio(
@@ -460,23 +1242,101 @@ def run_trading_simulation(
             if holding_days >= max_hold:
                 should_exit = True
                 exit_reason = "max_holding"
+            
+            # Dynamic Z-score exit: exit early if Z is diverging after sufficient time
+            if not should_exit and getattr(cfg, 'use_dynamic_z_exit', False):
+                hl_ratio_threshold = getattr(cfg, 'dynamic_z_exit_hl_ratio', 1.5)
+                z_threshold = getattr(cfg, 'dynamic_z_exit_threshold', 0.0)
+                
+                # Only check after hl_ratio_threshold * half_life days
+                if holding_days >= hl_ratio_threshold * hl:
+                    entry_z_abs = abs(entry.get('z', 0))
+                    current_z_abs = abs(z)
+                    
+                    # Exit if current |Z| >= entry |Z| + threshold (Z is diverging)
+                    if current_z_abs >= entry_z_abs + z_threshold:
+                        should_exit = True
+                        exit_reason = "z_diverging"
+            
+            # Slow convergence exit: exit if Z hasn't converged enough after threshold
+            if not should_exit and getattr(cfg, 'use_slow_convergence_exit', False):
+                sc_hl_ratio = getattr(cfg, 'slow_conv_hl_ratio', 1.5)
+                sc_z_pct_threshold = getattr(cfg, 'slow_conv_z_pct', 0.50)  # Exit if >50% of entry Z remains
+                
+                # Only check after sc_hl_ratio * half_life days
+                if holding_days >= sc_hl_ratio * hl:
+                    entry_z_abs = abs(entry.get('z', 0))
+                    current_z_abs = abs(z)
+                    
+                    # Calculate what % of entry Z remains
+                    z_pct_remaining = current_z_abs / entry_z_abs if entry_z_abs > 0 else 0
+                    
+                    # Exit if Z hasn't converged enough (too much Z remaining)
+                    if z_pct_remaining > sc_z_pct_threshold:
+                        should_exit = True
+                        exit_reason = "slow_convergence"
+            
+            if not should_exit and getattr(cfg, 'use_kalman_hedge', False) and getattr(cfg, 'kalman_zscore_regime', True):
+                # For Kalman: use z-score based regime break
+                # Since Kalman spread is mean-zero by construction, sign changes are too frequent
+                # Instead, check if z-score moves significantly against entry direction
+                kalman_regime_z = getattr(cfg, 'kalman_regime_zscore', 3.0)
+                if direction == 1:  # Long spread (entered when z < -entry_z)
+                    # Regime break if z goes way more negative (trend continues against us)
+                    if z <= entry.get('z', 0) - kalman_regime_z:
+                        should_exit = True
+                        exit_reason = "regime_break"
+                else:  # Short spread (entered when z > entry_z)
+                    # Regime break if z goes way more positive (trend continues against us)
+                    if z >= entry.get('z', 0) + kalman_regime_z:
+                        should_exit = True
+                        exit_reason = "regime_break"
             elif entry['spread'] * spread < 0:
                 should_exit = True
                 exit_reason = "regime_break"
-            elif direction == 1:  # Long spread
-                if z >= -cfg.exit_zscore:
-                    should_exit = True
-                    exit_reason = "convergence"
-                elif z <= -cfg.stop_loss_zscore:
-                    should_exit = True
-                    exit_reason = "stop_loss"
-            else:  # Short spread
-                if z <= cfg.exit_zscore:
-                    should_exit = True
-                    exit_reason = "convergence"
-                elif z >= cfg.stop_loss_zscore:
-                    should_exit = True
-                    exit_reason = "stop_loss"
+            
+            # Check convergence and stop-loss
+            if not should_exit:
+                if direction == 1:  # Long spread
+                    if z >= -cfg.exit_zscore:
+                        should_exit = True
+                        exit_reason = "convergence"
+                    else:
+                        # Check stop loss with optional time-based tightening
+                        use_time_stops = getattr(cfg, 'time_based_stops', False)
+                        if use_time_stops:
+                            tightening_rate = getattr(cfg, 'stop_tightening_rate', 0.1)
+                            time_stop, effective_stop = calculate_time_based_stop(
+                                entry['z'], z, holding_days, hl,
+                                cfg.stop_loss_zscore, tightening_rate
+                            )
+                            if time_stop:
+                                should_exit = True
+                                exit_reason = "stop_loss_time"
+                        else:
+                            if z <= -cfg.stop_loss_zscore:
+                                should_exit = True
+                                exit_reason = "stop_loss"
+                else:  # Short spread
+                    if z <= cfg.exit_zscore:
+                        should_exit = True
+                        exit_reason = "convergence"
+                    else:
+                        # Check stop loss with optional time-based tightening
+                        use_time_stops = getattr(cfg, 'time_based_stops', False)
+                        if use_time_stops:
+                            tightening_rate = getattr(cfg, 'stop_tightening_rate', 0.1)
+                            time_stop, effective_stop = calculate_time_based_stop(
+                                entry['z'], z, holding_days, hl,
+                                cfg.stop_loss_zscore, tightening_rate
+                            )
+                            if time_stop:
+                                should_exit = True
+                                exit_reason = "stop_loss_time"
+                        else:
+                            if z >= cfg.stop_loss_zscore:
+                                should_exit = True
+                                exit_reason = "stop_loss"
             
             if should_exit:
                 leg_x, leg_y = pair
@@ -508,6 +1368,10 @@ def run_trading_simulation(
                     'pnl': pnl,
                     'exit_reason': exit_reason,
                     'capital_at_entry': entry.get('capital', current_capital),
+                    'qty_x': entry['qty_x'],
+                    'qty_y': entry['qty_y'],
+                    'entry_px': entry['px'],
+                    'entry_py': entry['py'],
                 })
                 
                 # Update capital for compounding
@@ -523,7 +1387,21 @@ def run_trading_simulation(
         # Handle unlimited positions (max_positions == 0)
         max_pos_limit = cfg.max_positions if cfg.max_positions > 0 else len(pairs)
         
-        if n_active < max_pos_limit:
+        # VIX regime filter - skip new entries in high volatility regime
+        skip_entries = False
+        if getattr(cfg, 'use_vix_filter', False):
+            # Try to get VIX from prices (if included) or skip check
+            if 'VIX' in prices.columns or '^VIX' in prices.columns:
+                vix_col = 'VIX' if 'VIX' in prices.columns else '^VIX'
+                vix_data = prices[vix_col]
+                vix_info = check_vix_regime(
+                    vix_data, current_date,
+                    getattr(cfg, 'vix_threshold', 30.0),
+                    getattr(cfg, 'vix_lookback_days', 5)
+                )
+                skip_entries = vix_info['is_high_vol']
+        
+        if n_active < max_pos_limit and not skip_entries:
             for pair in pairs:
                 if position_state[pair] != 0:
                     continue
@@ -554,6 +1432,21 @@ def run_trading_simulation(
                         position_capital = min(position_capital, cfg.max_capital_per_trade)
                 else:
                     position_capital = cfg.capital_per_pair * cfg.leverage
+                
+                # Volatility-adjusted position sizing
+                if getattr(cfg, 'use_vol_sizing', False):
+                    # Calculate recent spread volatility
+                    spread_series = spreads[pair_name]
+                    spread_returns = spread_series.pct_change().dropna()
+                    if len(spread_returns) >= 20:
+                        spread_vol = spread_returns.iloc[-20:].std()
+                        position_capital = calculate_volatility_adjusted_size(
+                            position_capital,
+                            spread_vol,
+                            getattr(cfg, 'target_daily_vol', 0.02),
+                            getattr(cfg, 'vol_size_min', 0.25),
+                            getattr(cfg, 'vol_size_max', 2.0),
+                        )
                 
                 notional_x = position_capital / (1 + abs(hr))
                 notional_y = abs(hr) * notional_x
@@ -632,6 +1525,10 @@ def run_trading_simulation(
             'pnl': pnl,
             'exit_reason': 'period_end',
             'capital_at_entry': entry.get('capital', current_capital),
+            'qty_x': entry['qty_x'],
+            'qty_y': entry['qty_y'],
+            'entry_px': entry['px'],
+            'entry_py': entry['py'],
         })
         
         # Update capital for compounding
@@ -662,9 +1559,9 @@ class PairBlacklist:
             if trade['exit_reason'] == 'stop_loss':
                 self.pair_stats[pair]['stop_losses'] += 1
         
-        for pair, stats in self.pair_stats.items():
-            if stats['trades'] >= self.min_trades:
-                sl_rate = stats['stop_losses'] / stats['trades']
+        for pair, pair_stats in self.pair_stats.items():
+            if pair_stats['trades'] >= self.min_trades:
+                sl_rate = pair_stats['stop_losses'] / pair_stats['trades']
                 if sl_rate > self.threshold and pair not in self.blacklist:
                     logger.info(f"Blacklisting {pair}: {sl_rate:.1%} stop-loss rate")
                     self.blacklist.add(pair)

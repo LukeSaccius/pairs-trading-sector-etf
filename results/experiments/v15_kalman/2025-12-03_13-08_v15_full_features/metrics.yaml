@@ -1,0 +1,99 @@
+avg_holding_days: 129.58695652173913
+avg_loser: -245.6577595778265
+avg_pnl: 69.59675848934408
+avg_winner: 461.7426224265563
+by_exit_reason:
+  period_end:
+    avg_pnl: 69.59675848934408
+    total_pnl: 6402.901781019656
+    trades: 92
+    win_rate: 44.565217391304344
+by_sector:
+  ASIA_DEV:
+    avg_pnl: 157.38340366188712
+    total_pnl: 1416.450632956984
+    trades: 9
+    win_rate: 44.44444444444444
+  BONDS_CORP:
+    avg_pnl: -31.035894896447164
+    total_pnl: -62.07178979289433
+    trades: 2
+    win_rate: 0.0
+  BONDS_GOV:
+    avg_pnl: -50.08298867014415
+    total_pnl: -100.1659773402883
+    trades: 2
+    win_rate: 50.0
+  COMMODITIES:
+    avg_pnl: -212.91919712263024
+    total_pnl: -425.8383942452605
+    trades: 2
+    win_rate: 0.0
+  CONSUMER_DISC:
+    avg_pnl: -93.73533368461578
+    total_pnl: -281.20600105384733
+    trades: 3
+    win_rate: 33.33333333333333
+  ENERGY:
+    avg_pnl: 819.2700700771504
+    total_pnl: 819.2700700771504
+    trades: 1
+    win_rate: 100.0
+  EUROPE:
+    avg_pnl: 99.2854378823924
+    total_pnl: 4765.7010183548355
+    trades: 48
+    win_rate: 47.91666666666667
+  FINANCIALS:
+    avg_pnl: -7.993542707994455
+    total_pnl: -47.96125624796673
+    trades: 6
+    win_rate: 50.0
+  HEALTHCARE:
+    avg_pnl: 262.17712204944615
+    total_pnl: 262.17712204944615
+    trades: 1
+    win_rate: 100.0
+  INDUSTRIALS:
+    avg_pnl: 46.588047725041875
+    total_pnl: 186.3521909001675
+    trades: 4
+    win_rate: 50.0
+  US_BROAD:
+    avg_pnl: -2.191425788598163
+    total_pnl: -15.33998052018714
+    trades: 7
+    win_rate: 42.857142857142854
+  US_SMALL:
+    avg_pnl: -43.39186031654621
+    total_pnl: -173.56744126618483
+    trades: 4
+    win_rate: 25.0
+  US_VALUE:
+    avg_pnl: 19.70052904923428
+    total_pnl: 59.101587147702844
+    trades: 3
+    win_rate: 33.33333333333333
+losing_trades: 51
+max_drawdown: 3130.8653098635937
+profit_factor: !!python/object/apply:numpy._core.multiarray.scalar
+- !!python/object/apply:numpy.dtype
+  args:
+  - f8
+  - false
+  - true
+  state: !!python/tuple
+  - 3
+  - <
+  - null
+  - null
+  - null
+  - -1
+  - -1
+  - 0
+- !!binary |
+  xlcsilIt+D8=
+total_pnl: 6402.901781019656
+total_trades: 92
+win_rate: 44.565217391304344
+winning_trades: 41

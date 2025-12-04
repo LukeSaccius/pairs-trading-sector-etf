@@ -1,0 +1,85 @@
+# V15b - VIX + Vol-Sizing (No Kalman)
+# 
+# Testing VIX filter and vol-adjusted sizing without Kalman
+# Kalman may be causing issues with exit signals
+
+experiment_name: v15b_vix_volsizing
+description: "VIX filter + vol-adjusted sizing, no Kalman"
+
+# Cointegration
+pvalue_threshold: 0.10
+min_half_life: 5.0
+max_half_life: 25.0
+use_log_prices: true
+
+# Correlation
+min_correlation: 0.75
+max_correlation: 0.95
+
+# Pair Selection
+top_pairs: 40
+max_pairs_per_sector: 8
+max_pairs_per_etf: 3
+min_spread_range_pct: 0.03
+
+# Sector focus
+sector_focus: true
+exclude_sectors: ['EMERGING', 'US_GROWTH']
+
+# Trading Signals
+entry_zscore: 2.8
+exit_zscore: 0.3
+stop_loss_zscore: 3.0
+zscore_lookback: 60
+
+# Hedge ratio filter
+min_hedge_ratio: 0.6
+max_hedge_ratio: 1.7
+
+# Position management
+max_holding_days: 35
+dynamic_max_holding: true
+max_holding_multiplier: 2.5
+max_positions: 8
+
+# Dynamic hedge - use standard OLS updates
+dynamic_hedge: true
+
+# Vidyamurthy Framework
+min_snr: 1.5
+min_zero_crossing_rate: 5.0
+time_based_stops: true
+stop_tightening_rate: 0.1
+
+# DISABLED: Kalman Filter (was causing issues)
+use_kalman_hedge: false
+
+# VIX Regime Filter - halt entries when VIX > 30
+use_vix_filter: false  # Disabled for now since VIX not in data
+
+# Volatility-Adjusted Position Sizing
+use_vol_sizing: true
+target_daily_vol: 0.02
+vol_size_min: 0.25
+vol_size_max: 2.0
+
+# Capital & Risk Management
+initial_capital: 50000.0
+leverage: 1.5
+compounding: true
+unlimited_pairs: false
+max_capital_per_trade: 15000.0
+min_pairs_for_trading: 4
+
+# Fixed capital per pair (when not compounding)
+capital_per_pair: 10000.0
+
+# Costs
+transaction_cost_bps: 10.0
+
+# Blacklist
+blacklist_stoploss_rate: 0.20
+blacklist_min_trades: 2
+
+# Output
+timestamped_output: true

@@ -244,3 +244,244 @@ ETF pairs appear cointegrated when testing on full history, but:
 3. **Machine learning approach**: Predict cointegration persistence
 4. **Alternative strategies**: Distance method, factor pairs
 5. **Document findings**: Prepare thesis section on strategy limitations
+
+---
+
+## Day 3: December 3, 2025 (continued)
+
+### Sessions 11-13: Kalman Filter Investigation & Parameter Optimization
+
+#### Major Accomplishments
+
+1. **Kalman Filter Deep Dive**
+
+   **Motivation:** V15 với Kalman filter thất bại hoàn toàn (-$8,686 PnL, 29.4% win rate). Mục tiêu: tìm hiểu tại sao.
+
+   **Experiments Conducted:**
+   
+   | Version | Configuration | PnL | Win Rate | Issue |
+   |---------|---------------|-----|----------|-------|
+   | V15b | No Kalman (OLS only) | +$5,241 | 69.1% | ✅ Works |
+   | V15c v1 | Basic Kalman | -$8,686 | 29.4% | All trades timeout |
+   | V15c v2 | Kalman + Adaptive R | -$8,720 | 29.0% | Same issue |
+   | V15c v3 | Momentum Model | -$8,686 | 29.4% | Same issue |
+
+   **Root Cause Discovery:**
+   
+   Forensic analysis cho thấy Kalman spread có 50-100x nhiều lần đổi dấu hơn OLS spread:
+   
+   | Metric | OLS Spread | Kalman Spread |
+   |--------|------------|---------------|
+   | Sign Changes (GLD-GDX) | 11 | 1,162 |
+   | Std Dev | 0.24 | 0.002 |
+   
+   **Lý do kỹ thuật:**
+   - Kalman hedge ratio β_t thay đổi liên tục
+   - Spread = y - β_t × x oscillates quanh 0 rất nhanh
+   - Rolling z-score trên chuỗi không stationary → vô nghĩa
+   - Z-score không bao giờ exit conditions → trades timeout sau 130 ngày
+
+   **So sánh với Literature (Palomar Chapter 15):**
+   - Palomar dùng Kalman cho price prediction
+   - Momentum model dự đoán xu hướng, không phải mean-reversion
+   - **Kết luận:** Kalman KHÔNG phù hợp cho z-score based pairs trading
+
+   **Files Created:**
+   - `docs/kalman_analysis_summary.md` - Chi tiết phân tích
+   - `scripts/debug_kalman_vs_ols.py` - So sánh Kalman vs OLS spreads
+
+2. **Sensitivity Analysis - Entry Threshold & Position Sizing**
+
+   **Problem:** V15b chỉ đạt 0.70% annualized return vs SPY 13.44%
+   
+   **Experiment Setup:**
+   - Entry z-score: [1.5, 2.0, 2.5, 2.8, 3.0]
+   - Max positions: [5, 8, 10, 15]
+   - Capital per pair: [10k, 15k, 20k]
+   - Total: 60 combinations tested
+
+   **Results - Top 5 Configurations:**
+   
+   | Entry Z | Max Pos | PnL | Win Rate | Profit Factor | Annualized |
+   |---------|---------|-----|----------|---------------|------------|
+   | 2.8 | 5 | $9,189 | 62.8% | 2.70 | 1.19% |
+   | 2.5 | 5 | $8,969 | 56.4% | 1.99 | 1.16% |
+   | 3.0 | 5 | $7,110 | 52.0% | 2.89 | 0.92% |
+   | 2.5 | 8 | $5,606 | 52.7% | 1.81 | 0.72% |
+   | 2.8 | 8 | $5,241 | 69.1% | 2.47 | 0.70% |
+
+   **Key Insights:**
+   
+   - **Entry Z = 2.8 optimal**: Best balance between signal quality và trade frequency
+   - **Entry Z = 1.5 loses money**: Too many false signals (-$3,431 avg PnL)
+   - **Max Positions = 5 best**: Capital concentration on best opportunities
+   - **Capital per pair không ảnh hưởng**: Do compounding + vol_sizing override
+
+   **Files Created:**
+   - `scripts/sensitivity_entry_position.py` - Grid search script
+   - `results/sensitivity_entry_position.csv` - Full results
+
+3. **Capital Utilization Problem Analysis**
+
+   **Issue:** Dù tối ưu, strategy vẫn chỉ đạt 1.19% annualized
+   
+   **Root Cause:**
+   - Chỉ có 74 trades trong 14 năm = 5.2 trades/năm
+   - Entry z-score = 2.8 = signal rất hiếm trong ETF universe
+   - Capital idle phần lớn thời gian
+   
+   **Comparison:**
+   | Strategy | Annualized Return | Effort |
+   |----------|-------------------|--------|
+   | SPY Buy & Hold | 13.44% | None |
+   | V15b Baseline | 0.70% | Full |
+   | V15b Optimized | 1.19% | Full |
+
+---
+
+## Updated Conclusions
+
+### What Works
+1. **V15b (No Kalman)**: Best performer with $5,241 PnL, 69% win rate
+2. **Entry z-score 2.8**: Optimal threshold, 62.8% win rate
+3. **Max positions 5**: Concentrate capital on best opportunities
+4. **Sector focus**: EUROPE pairs most stable
+5. **Vol-sizing**: Dynamically adjusts position based on volatility
+
+### What Doesn't Work
+1. **Kalman Filter**: 50-100x more spread sign changes, breaks z-score signals
+2. **ETF-only universe**: Not enough mean-reversion opportunities
+3. **Low entry threshold (z=1.5)**: Too many false signals, loses money
+4. **High max positions (15+)**: Over-diversification, dilutes returns
+
+### Final Strategy Performance
+
+| Metric | V15b Baseline | V16 Optimized |
+|--------|---------------|---------------|
+| Total PnL | $5,241 | **$8,602** |
+| Win Rate | 69.1% | 69.1% |
+| Profit Factor | 2.47 | 2.43 |
+| Annualized | 0.70% | **1.10%** |
+| vs SPY | -12.74% | -12.34% |
+
+### Honest Assessment
+
+> **ETF pairs trading with cointegration approach cannot beat SPY.**
+>
+> Best achievable: ~1.1% annualized return (after extensive optimization)
+> SPY benchmark: ~13.4% annualized return
+>
+> The strategy may have value as:
+> - Market-neutral component in portfolio
+> - Crisis hedge (performs better in high volatility)
+> - Academic exercise in statistical arbitrage
+>
+> But NOT as primary alpha source.
+
+---
+
+## Sessions 14-15: V16 Implementation & Cleanup
+
+### 4. Project Cleanup
+
+Removed unused/empty folders and archived debug scripts:
+
+**Deleted (Empty Folders):**
+```
+src/backtests/
+src/data/
+src/features/
+src/models/
+src/pipelines/
+src/utils/
+```
+
+**Archived Scripts:**
+```
+scripts/archive/
+├── compare_zscore_approaches.py
+├── debug_capital_flow.py
+├── debug_kalman_vs_ols.py
+├── debug_trades.py
+├── deep_debug.py
+├── forensic_analysis.py
+└── quick_compare.py
+```
+
+**Archived Configs:**
+```
+configs/experiments/archive/
+├── v10_risk_managed.yaml
+├── v11_crisis_aware.yaml
+├── v15_full_features.yaml
+└── v15c_kalman_momentum.yaml
+```
+
+**Active Configs:**
+- `default.yaml` - Base config
+- `v14_vidyamurthy_full.yaml` - Vidyamurthy framework
+- `v15b_vix_volsizing.yaml` - Previous best
+- `v16_optimized.yaml` - **Current best**
+
+### 5. V16 Implementation
+
+**Config Changes:**
+| Parameter | V15b | V16 | Reason |
+|-----------|------|-----|--------|
+| `max_positions` | 8 | **5** | Concentrate capital |
+| `max_capital_per_trade` | 15000 | **25000** | Larger positions |
+| `use_vix_filter` | false | **true** | Risk management |
+| `vix_threshold` | N/A | **30** | Halt in high vol |
+
+**VIX Data Added:**
+- Downloaded ^VIX from Yahoo Finance
+- Added to `data/raw/etf_prices_fresh.csv`
+- VIX range: 9.14 - 82.69
+- 435 days with VIX > 30
+
+**V16 Results:**
+| Metric | Value |
+|--------|-------|
+| Total PnL | $8,602 |
+| Total Trades | 68 |
+| Win Rate | 69.1% |
+| Profit Factor | 2.43 |
+| Annualized | ~1.10% |
+
+### 6. Capital Flow Debug
+
+**Issue:** `capital_per_pair` không ảnh hưởng PnL
+
+**Root Cause:**
+```python
+if cfg.compounding:
+    # capital_per_pair IGNORED!
+    position_capital = (current_capital * leverage) / max_positions
+else:
+    position_capital = cfg.capital_per_pair * leverage
+```
+
+**Recommendation:** Rename or document that `capital_per_pair` only works when `compounding=false`
+
+---
+
+## Files Created/Modified (Day 3)
+
+### New Scripts
+- `scripts/debug_kalman_vs_ols.py` → archived
+- `scripts/sensitivity_entry_position.py` - Parameter grid search
+- `scripts/debug_capital_flow.py` → archived
+
+### New Documentation
+- `docs/kalman_analysis_summary.md` - Kalman failure analysis
+
+### New Results
+- `results/sensitivity_entry_position.csv` - 60 configuration results
+- `results/2025-12-03_15-56_v16_optimized/` - V16 backtest results
+- `results/2025-12-03_15-59_v16_optimized/` - V16 with VIX filter
+
+### New Configs
+- `configs/experiments/v16_optimized.yaml` - **Current best config**
+
+### Data Updated
+- `data/raw/etf_prices_fresh.csv` - Added VIX column (119 columns now)

@@ -1,0 +1,111 @@
+# V15c - Kalman Filter with Momentum Model
+# 
+# Fixed Kalman implementation based on Palomar (2025) Chapter 15.6:
+# - Tracks [intercept, hedge_ratio, hedge_velocity] (3-state momentum model)
+# - Uses Joseph form covariance update for numerical stability  
+# - Adaptive observation variance R
+# - Small delta (1e-5) for stable hedge ratio estimates
+#
+# The momentum model (Eq. 15.4) produces SMOOTHER hedge ratios by modeling
+# the rate of change, which acts as regularization.
+
+experiment_name: v15c_kalman_momentum
+description: "Kalman momentum model (Palomar Ch.15) + vol-sizing"
+
+# Cointegration
+pvalue_threshold: 0.10
+min_half_life: 5.0
+max_half_life: 25.0
+use_log_prices: true
+
+# Correlation
+min_correlation: 0.75
+max_correlation: 0.95
+
+# Pair Selection
+top_pairs: 40
+max_pairs_per_sector: 8
+max_pairs_per_etf: 3
+min_spread_range_pct: 0.03
+
+# Sector focus
+sector_focus: true
+exclude_sectors: ['EMERGING', 'US_GROWTH']
+
+# Trading Signals
+entry_zscore: 2.8
+exit_zscore: 0.3
+stop_loss_zscore: 3.0
+zscore_lookback: 60
+
+# Hedge ratio filter
+min_hedge_ratio: 0.6
+max_hedge_ratio: 1.7
+
+# Position management
+max_holding_days: 35
+dynamic_max_holding: true
+max_holding_multiplier: 2.5
+max_positions: 8
+
+# Dynamic hedge - disabled, using Kalman instead
+dynamic_hedge: false
+
+# ==========================================================================
+# Vidyamurthy Framework (from V14)
+# ==========================================================================
+min_snr: 1.5
+min_zero_crossing_rate: 5.0
+time_based_stops: true
+stop_tightening_rate: 0.1
+
+# ==========================================================================
+# Kalman Filter - Momentum Model (Palomar Eq. 15.4)
+# ==========================================================================
+# State: [intercept, hedge_ratio, hedge_velocity]
+# State transition: local linear trend (gamma_t+1 = gamma_t + gamma_dot_t)
+# This produces SMOOTHER hedge ratio estimates
+use_kalman_hedge: true
+kalman_delta: 0.00001      # Small delta = stable, larger = more adaptive
+kalman_vw: 0.001           # Initial observation variance (will be adapted)
+kalman_use_momentum: true  # Use 3-state momentum model (Eq. 15.4)
+
+# Z-score based regime break for Kalman (spread sign changes too frequently)
+kalman_zscore_regime: true  # Use z-score for regime break vs spread sign change
+kalman_regime_zscore: 3.0   # Regime break if z-score worsens by this much
+
+# ==========================================================================
+# VIX Regime Filter - DISABLED (no VIX data available)
+# ==========================================================================
+use_vix_filter: false
+
+# ==========================================================================
+# Volatility-Adjusted Position Sizing
+# ==========================================================================
+use_vol_sizing: true
+target_daily_vol: 0.02
+vol_size_min: 0.25
+vol_size_max: 2.0
+
+# ==========================================================================
+
+# Capital & Risk Management
+initial_capital: 50000.0
+leverage: 1.5
+compounding: true
+unlimited_pairs: false
+max_capital_per_trade: 15000.0
+min_pairs_for_trading: 4
+
+# Fixed capital per pair (when not compounding)
+capital_per_pair: 10000.0
+
+# Costs
+transaction_cost_bps: 10.0
+
+# Blacklist
+blacklist_stoploss_rate: 0.20
+blacklist_min_trades: 2
+
+# Output
+timestamped_output: true

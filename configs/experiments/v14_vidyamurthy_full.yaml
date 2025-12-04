@@ -1,0 +1,93 @@
+# V14 - Full Vidyamurthy Framework Implementation
+# 
+# Based on Vidyamurthy "Pairs Trading" Chapters 6-7:
+# 1. SNR (Signal-to-Noise Ratio) filter - measures cointegration quality
+# 2. Zero-Crossing Rate filter - measures tradability
+# 3. Time-based Stop Tightening - "passage of time = increase in risk"
+# 4. Updated scoring with Vidyamurthy metrics
+#
+# Building on V11 (Crisis-aware) which had $2,079 PnL
+
+experiment_name: v14_vidyamurthy_full
+description: "Full Vidyamurthy framework: SNR filter, ZCR filter, time-based stops"
+
+# Cointegration
+pvalue_threshold: 0.10
+min_half_life: 5.0
+max_half_life: 25.0
+use_log_prices: true
+
+# Correlation
+min_correlation: 0.75
+max_correlation: 0.95
+
+# Pair Selection
+top_pairs: 40
+max_pairs_per_sector: 8
+max_pairs_per_etf: 3
+min_spread_range_pct: 0.03
+
+# Sector focus
+sector_focus: true
+exclude_sectors: ['EMERGING', 'US_GROWTH']
+
+# Trading Signals (same as V11)
+entry_zscore: 2.8
+exit_zscore: 0.3
+stop_loss_zscore: 3.0
+zscore_lookback: 60
+
+# Hedge ratio filter
+min_hedge_ratio: 0.6
+max_hedge_ratio: 1.7
+
+# Position management
+max_holding_days: 35
+dynamic_max_holding: true
+max_holding_multiplier: 2.5
+max_positions: 8
+
+# Dynamic hedge
+dynamic_hedge: true
+
+# ==========================================================================
+# NEW: Vidyamurthy Framework Parameters
+# ==========================================================================
+# SNR (Signal-to-Noise Ratio): σ_stationary / σ_nonstationary
+# Higher SNR = stronger cointegration (mean-reverting vs noise)
+# Typical good values: 1.5-3.0+
+min_snr: 1.5
+
+# Zero-Crossing Rate: number of times spread crosses mean per year
+# Higher ZCR = more tradeable, faster mean-reversion
+# Typical good values: 5-20 per year
+min_zero_crossing_rate: 5.0
+
+# Time-based Stop Tightening
+# Vidyamurthy insight: "mere passage of time represents increase in risk"
+# As holding exceeds half-life, stop tightens to protect capital
+time_based_stops: true
+stop_tightening_rate: 0.1  # Stop tightens 10% per half-life elapsed
+
+# ==========================================================================
+
+# Capital & Risk Management
+initial_capital: 50000.0
+leverage: 1.5
+compounding: true
+unlimited_pairs: false
+max_capital_per_trade: 15000.0
+min_pairs_for_trading: 4
+
+# Fixed capital per pair (when not compounding)
+capital_per_pair: 10000.0
+
+# Costs
+transaction_cost_bps: 10.0
+
+# Blacklist
+blacklist_stoploss_rate: 0.20
+blacklist_min_trades: 2
+
+# Output
+timestamped_output: true

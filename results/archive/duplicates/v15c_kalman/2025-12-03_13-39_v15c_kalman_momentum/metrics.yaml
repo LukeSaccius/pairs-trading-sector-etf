@@ -1,0 +1,99 @@
+avg_holding_days: 2.148936170212766
+avg_loser: -16.430053282114024
+avg_pnl: -9.257656714623693
+avg_winner: 13.314297188948828
+by_exit_reason:
+  convergence:
+    avg_pnl: -9.257656714623693
+    total_pnl: -1305.3295967619406
+    trades: 141
+    win_rate: 24.113475177304963
+by_sector:
+  ASIA_DEV:
+    avg_pnl: -5.103653863239931
+    total_pnl: -61.24384635887917
+    trades: 12
+    win_rate: 33.33333333333333
+  BONDS_CORP:
+    avg_pnl: -0.5854269127836919
+    total_pnl: -1.7562807383510757
+    trades: 3
+    win_rate: 33.33333333333333
+  BONDS_GOV:
+    avg_pnl: -6.289884565909396
+    total_pnl: -37.73930739545637
+    trades: 6
+    win_rate: 33.33333333333333
+  COMMODITIES:
+    avg_pnl: -8.619677530372678
+    total_pnl: -43.09838765186339
+    trades: 5
+    win_rate: 20.0
+  CONSUMER_DISC:
+    avg_pnl: -5.983319520062518
+    total_pnl: -41.88323664043763
+    trades: 7
+    win_rate: 57.14285714285714
+  ENERGY:
+    avg_pnl: -22.617323517803637
+    total_pnl: -45.234647035607274
+    trades: 2
+    win_rate: 0.0
+  EUROPE:
+    avg_pnl: -12.26665856414926
+    total_pnl: -760.5328309772541
+    trades: 62
+    win_rate: 22.58064516129032
+  FINANCIALS:
+    avg_pnl: -1.2721204474417105
+    total_pnl: -24.1702885013925
+    trades: 19
+    win_rate: 31.57894736842105
+  HEALTHCARE:
+    avg_pnl: -34.51621618908539
+    total_pnl: -138.06486475634156
+    trades: 4
+    win_rate: 25.0
+  INDUSTRIALS:
+    avg_pnl: -12.067027968912042
+    total_pnl: -108.60325172020838
+    trades: 9
+    win_rate: 0.0
+  US_BROAD:
+    avg_pnl: -4.37942557043287
+    total_pnl: -35.03540456346296
+    trades: 8
+    win_rate: 0.0
+  US_SMALL:
+    avg_pnl: -0.9253375654110556
+    total_pnl: -2.776012696233167
+    trades: 3
+    win_rate: 33.33333333333333
+  US_VALUE:
+    avg_pnl: -5.191237726452942
+    total_pnl: -5.191237726452942
+    trades: 1
+    win_rate: 0.0
+losing_trades: 107
+max_drawdown: 1327.7456952947077
+profit_factor: !!python/object/apply:numpy._core.multiarray.scalar
+- !!python/object/apply:numpy.dtype
+  args:
+  - f8
+  - false
+  - true
+  state: !!python/tuple
+  - 3
+  - <
+  - null
+  - null
+  - null
+  - -1
+  - -1
+  - 0
+- !!binary |
+  9MfaRNp60D8=
+total_pnl: -1305.3295967619406
+total_trades: 141
+win_rate: 24.113475177304963
+winning_trades: 34

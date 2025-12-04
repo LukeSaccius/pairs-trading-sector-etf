@@ -1,0 +1,106 @@
+# V17 - Dynamic Max Holding Optimization
+# 
+# Based on analysis of V16b trades:
+# - Trades held > 2.5x half-life have 45% win rate (vs 79% for < 1.5x)
+# - Dynamic max holding already exists in V16b but multiplier=2.5 seems too high
+# - This version uses multiplier=2.0 for tighter control
+#
+# Key insight from trade analysis:
+# | HL Ratio | Trades | Win Rate | Avg PnL |
+# |----------|--------|----------|---------|
+# | 0-1.5x   | 34     | 79.4%    | +$197   |
+# | 1.5-2.5x | 17     | 76.5%    | +$94    |
+# | 2.5-3.5x | 11     | 45.5%    | -$47    |
+# | 3.5x+    | 12     | 41.7%    | -$91    |
+#
+# Target: Exit trades before 2.5x half-life to improve win rate
+
+experiment_name: v17_dynamic_holding
+description: "Tighter dynamic max holding for better win rate"
+
+# ==========================================================================
+# Cointegration Settings (same as V16b)
+# ==========================================================================
+pvalue_threshold: 0.10
+min_half_life: 5.0
+max_half_life: 25.0
+use_log_prices: true
+
+# ==========================================================================
+# Correlation Filters (same as V16b)
+# ==========================================================================
+min_correlation: 0.75
+max_correlation: 0.95
+
+# ==========================================================================
+# Pair Selection (same as V16b)
+# ==========================================================================
+top_pairs: 40
+max_pairs_per_sector: 8
+max_pairs_per_etf: 3
+min_spread_range_pct: 0.03
+
+# Sector focus
+sector_focus: true
+exclude_sectors: ['EMERGING', 'US_GROWTH']
+
+# ==========================================================================
+# Trading Signals (same as V16b)
+# ==========================================================================
+entry_zscore: 2.8
+exit_zscore: 0.3
+stop_loss_zscore: 3.0
+zscore_lookback: 60
+
+# ==========================================================================
+# Hedge Ratio Filter (same as V16b)
+# ==========================================================================
+min_hedge_ratio: 0.6
+max_hedge_ratio: 1.7
+
+# ==========================================================================
+# Position Management (OPTIMIZED)
+# ==========================================================================
+max_holding_days: 30             # Reduced from 35
+dynamic_max_holding: true
+max_holding_multiplier: 2.0      # Reduced from 2.5 - exit before win rate drops
+max_positions: 5
+
+# Dynamic hedge - use standard OLS updates
+dynamic_hedge: true
+
+# ==========================================================================
+# Vidyamurthy Framework (same as V16b)
+# ==========================================================================
+min_snr: 1.5
+min_zero_crossing_rate: 5.0
+time_based_stops: true
+stop_tightening_rate: 0.1
+
+# ==========================================================================
+# Kalman Filter - DISABLED
+# ==========================================================================
+use_kalman_hedge: false
+
+# ==========================================================================
+# VIX Regime Filter - DISABLED
+# ==========================================================================
+use_vix_filter: false
+vix_threshold: 30.0
+vix_lookback_days: 5
+
+# ==========================================================================
+# Volatility-Adjusted Position Sizing (same as V16b)
+# ==========================================================================
+use_vol_sizing: true
+target_daily_vol: 0.02
+vol_size_min: 0.25
+vol_size_max: 2.0
+
+# ==========================================================================
+# Capital & Risk Management (same as V16b)
+# ==========================================================================
+initial_capital: 50000.0
+leverage: 1.5
+compounding: true
+max_capital_per_trade: 15000.0

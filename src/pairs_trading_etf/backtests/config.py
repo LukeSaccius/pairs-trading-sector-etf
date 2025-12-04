@@ -96,11 +96,68 @@ class BacktestConfig:
     # Position Management
     # ==========================================================================
     max_holding_days: int = 45       # Maximum days to hold position (fallback)
-    capital_per_pair: float = 10000.0  # Notional per pair (used if not compounding)
     max_positions: int = 10          # Max concurrent positions (0 = unlimited)
     dynamic_hedge: bool = True       # Update hedge ratio during trading
     dynamic_max_holding: bool = True # Scale max holding by half-life
     max_holding_multiplier: float = 3.0  # max_hold = min(multiplier * half_life, max_holding_days)
+    
+    # ==========================================================================
+    # Capital Allocation (see engine.py for logic)
+    # ==========================================================================
+    # When compounding=True:
+    #   position_capital = (current_capital * leverage) / max_positions
+    #   capital_per_pair is IGNORED
+    # When compounding=False:
+    #   position_capital = capital_per_pair * leverage
+    capital_per_pair: float = 10000.0  # Fixed notional per pair (ONLY used when compounding=False)
+    
+    # ==========================================================================
+    # Vidyamurthy Framework - SNR & Tradability Filters
+    # ==========================================================================
+    min_snr: float = 0.0             # Minimum Signal-to-Noise Ratio (0 = disabled, recommend 1.5+)
+    min_zero_crossing_rate: float = 0.0  # Min zero crossings per year (0 = disabled, recommend 5+)
+    time_based_stops: bool = False   # Enable time-based stop tightening
+    stop_tightening_rate: float = 0.1  # Rate of stop tightening per half-life elapsed
+    
+    # ==========================================================================
+    # Kalman Filter Dynamic Hedge Ratio
+    # ==========================================================================
+    # Based on Palomar (2025) Chapter 15.6 "Kalman Filtering for Pairs Trading"
+    use_kalman_hedge: bool = False   # Use Kalman filter for dynamic hedge ratio
+    kalman_delta: float = 0.00001    # Process noise (smaller = more stable, typical: 1e-5 to 1e-6)
+    kalman_vw: float = 0.001         # Initial observation noise (will be adapted online)
+    kalman_use_momentum: bool = True # Use momentum model (Eq. 15.4) for smoother hedge ratios
+    kalman_zscore_regime: bool = True  # Use z-score based regime break (vs spread sign change)
+    kalman_regime_zscore: float = 3.0  # Z-score threshold for regime break when using Kalman
+    
+    # ==========================================================================
+    # VIX Regime Filter
+    # ==========================================================================
+    use_vix_filter: bool = False     # Enable VIX-based regime filter
+    vix_threshold: float = 30.0      # Halt new entries when VIX > threshold
+    vix_lookback_days: int = 5       # Days to average VIX over
+    
+    # ==========================================================================
+    # Volatility-Adjusted Position Sizing
+    # ==========================================================================
+    use_vol_sizing: bool = False     # Enable volatility-adjusted position sizing
+    target_daily_vol: float = 0.02   # Target daily volatility (2%)
+    vol_size_min: float = 0.25       # Minimum position size (25% of base)
+    vol_size_max: float = 2.0        # Maximum position size (200% of base)
+    
+    # ==========================================================================
+    # Dynamic Z-Score Exit
+    # ==========================================================================
+    use_dynamic_z_exit: bool = False         # Enable dynamic exit based on Z-score divergence
+    dynamic_z_exit_hl_ratio: float = 1.5     # Check after this many half-lives
+    dynamic_z_exit_threshold: float = 0.0    # Exit if |current_z| >= |entry_z| + threshold
+    
+    # ==========================================================================
+    # Slow Convergence Exit
+    # ==========================================================================
+    use_slow_convergence_exit: bool = False  # Exit if Z hasn't converged enough
+    slow_conv_hl_ratio: float = 1.5          # Check after this many half-lives
+    slow_conv_z_pct: float = 0.50            # Exit if Z remaining > this % of entry Z
     
     # ==========================================================================
     # Compounding & Leverage

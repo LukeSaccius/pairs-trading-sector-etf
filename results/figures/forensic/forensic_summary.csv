@@ -1,0 +1,11 @@
+trade_idx,pair,pnl,fixed_crossed,rolling_crossed,is_bug
+1,EWQ/EWI,-367.6785898702646,True,False,True
+2,KRE/IAI,-188.860897794485,True,False,True
+3,EWU/EWI,-152.1902627141802,True,False,True
+4,TLT/BND,-103.98344594809018,False,False,False
+5,XLI/ITA,-92.54640231326267,False,False,False
+6,EZU/EWL,-90.60432733129596,False,False,False
+7,EWU/EWL,-84.3105123920508,False,False,False
+8,EWJ/EWS,-70.5859193998623,True,False,True
+9,EWA/EWY,-48.31327455616369,True,False,True
+10,EWT/EWY,-47.900812968850616,True,False,True

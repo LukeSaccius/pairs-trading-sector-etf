@@ -129,6 +129,240 @@ The fact that we cannot find ANY stably cointegrated ETF pairs in a 136-ETF univ
 
 ---
 
+### Finding #4: Kalman Filter Không Hoạt Động cho Pairs Trading
+
+**Date Discovered:** 2025-12-03
+
+**Problem Statement:**
+Thử nghiệm Kalman Filter để cập nhật hedge ratio động theo Vidyamurthy (2004) và Palomar & Feng (2015, Chapter 15). Kết quả: tất cả trades đều exit do "period_end" với trung bình giữ 130 ngày.
+
+**Experiments Conducted:**
+
+| Version | Kalman Config | PnL | Win Rate | Issue |
+|---------|---------------|-----|----------|-------|
+| V15b | No Kalman | +$5,241 | 69.1% | ✅ Works |
+| V15c | Basic Kalman | -$8,686 | 29.4% | ❌ All trades timeout |
+| V15c v2 | Kalman + Adaptive R | -$8,720 | 29.0% | ❌ Same issue |
+| V15c v3 | Momentum Model | -$8,686 | 29.4% | ❌ Same issue |
+
+**Root Cause Analysis:**
+
+Qua forensic analysis, phát hiện:
+
+1. **Kalman Spread có 50-100x nhiều lần đổi dấu hơn OLS Spread**
+   
+   | Metric | OLS Spread | Kalman Spread |
+   |--------|------------|---------------|
+   | Sign Changes (GLD-GDX) | 11 | 1,162 |
+   | Std Dev | 0.24 | 0.002 |
+   | Mean | -0.15 | 0.0001 |
+
+2. **Nguyên nhân kỹ thuật:**
+   - Kalman hedge ratio thay đổi liên tục → spread = y - β_t × x thay đổi liên tục
+   - Spread oscillates quanh 0 rất nhanh (gần như noise)
+   - Rolling z-score không ổn định → không trigger exit conditions
+
+3. **So sánh với Palomar Book (Chapter 15):**
+   - Palomar dùng Kalman cho price prediction, không phải trading signals
+   - Momentum model trong sách dùng để dự đoán xu hướng, không phải mean-reversion
+   - Kalman phù hợp cho real-time hedge ratio estimation, nhưng KHÔNG phù hợp cho z-score calculation
+
+**Theoretical Mismatch:**
+```
+OLS Approach:
+- β fixed over lookback window
+- Spread = y - β × x (stable)
+- Z-score = (spread - μ) / σ (meaningful)
+
+Kalman Approach:
+- β_t changes every timestep
+- Spread_t = y_t - β_t × x_t (unstable)
+- Rolling z-score của chuỗi không stationary → vô nghĩa
+```
+
+**Conclusion:**
+- Kalman Filter **KHÔNG** phù hợp cho pairs trading strategy này
+- Giữ OLS rolling hedge ratio là phương pháp tốt nhất
+- V15b (no Kalman) là baseline tốt nhất: $5,241 PnL, 69.1% win rate
+
+**Files:**
+- Chi tiết phân tích: `docs/kalman_analysis_summary.md`
+- Debug script: `scripts/debug_kalman_vs_ols.py`
+
+---
+
+### Finding #5: Sensitivity Analysis - Entry Threshold & Position Sizing
+
+**Date Discovered:** 2025-12-03
+
+**Objective:**
+Tối ưu hóa entry_zscore và position sizing để cải thiện returns (V15b chỉ đạt 0.70% annualized vs SPY 13.44%)
+
+**Experiment Setup:**
+- Entry z-score: [1.5, 2.0, 2.5, 2.8, 3.0]
+- Max positions: [5, 8, 10, 15]
+- Capital per pair: [10000, 15000, 20000]
+- Total combinations: 60
+
+**Results Summary:**
+
+**Top 5 Configurations by PnL:**
+
+| Rank | Entry Z | Max Pos | Capital | PnL | Win Rate | Profit Factor |
+|------|---------|---------|---------|-----|----------|---------------|
+| 1 | 2.8 | 5 | $10k | $9,189 | 62.8% | 2.70 |
+| 2 | 2.5 | 5 | $10k | $8,969 | 56.4% | 1.99 |
+| 3 | 3.0 | 5 | $10k | $7,110 | 52.0% | 2.89 |
+| 4 | 2.5 | 8 | $10k | $5,606 | 52.7% | 1.81 |
+| 5 | 2.8 | 8 | $10k | $5,241 | 69.1% | 2.47 |
+
+**Key Insights by Entry Z-Score:**
+
+| Entry Z | Avg PnL | Avg Win Rate | Best Use Case |
+|---------|---------|--------------|---------------|
+| 1.5 | -$3,431 | 51.4% | ❌ Too many false signals |
+| 2.0 | +$2,065 | 50.2% | 🔶 Marginal |
+| 2.5 | +$5,414 | 55.9% | ✅ Good balance |
+| **2.8** | **+$5,788** | **62.8%** | ✅ **Optimal** |
+| 3.0 | +$4,449 | 52.0% | 🔶 Fewer trades |
+
+**Key Insights by Max Positions:**
+
+| Max Pos | Avg PnL | Reasoning |
+|---------|---------|-----------|
+| 5 | Highest | Capital concentration on best opportunities |
+| 8 | Medium | Current baseline |
+| 10-15 | Lower | Over-diversification, dilutes capital |
+
+**Surprising Finding:**
+Capital per pair ($10k, $15k, $20k) **không ảnh hưởng PnL** vì:
+- `compounding: true` → capital per pair = total_equity / n_positions
+- `max_capital_per_trade: 15000` cap lại capital
+- `use_vol_sizing: true` → position size dựa trên volatility, không phải fixed capital
+
+**Optimal Configuration:**
+```yaml
+entry_zscore: 2.8
+max_positions: 5
+capital_per_pair: 10000  # (không ảnh hưởng với compounding)
+```
+
+**Expected Performance:**
+- Total PnL: $9,189 (vs $5,241 baseline)
+- Win Rate: 62.8% (vs 69.1% baseline)
+- Profit Factor: 2.70 (vs 2.47 baseline)
+- Annualized Return: ~1.19% (vs 0.70% baseline)
+
+**Limitation:**
+Dù đã tối ưu, strategy vẫn chỉ đạt 1.19% annualized vs SPY 13.44%. Nguyên nhân:
+- Chỉ có 74 trades trong 14 năm = 5 trades/năm
+- Capital utilization thấp
+- Mean-reversion signals hiếm trong ETF universe
+
+---
+
+### Finding #6: V16 Implementation & VIX Filter
+
+**Date Implemented:** 2025-12-03
+
+**Context:**
+Sau sensitivity analysis, implement V16 với optimal settings và thêm VIX regime filter.
+
+**V16 Config Changes:**
+
+| Parameter | V15b (Baseline) | V16 (Optimized) | Reason |
+|-----------|-----------------|-----------------|--------|
+| `entry_zscore` | 2.8 | 2.8 | Already optimal |
+| `max_positions` | 8 | **5** | Concentrate capital |
+| `max_capital_per_trade` | 15000 | **25000** | Allow larger positions |
+| `use_vix_filter` | false | **true** | Risk management |
+| `vix_threshold` | N/A | **30.0** | Halt entries in high vol |
+
+**VIX Data Integration:**
+- Downloaded VIX từ Yahoo Finance (^VIX)
+- Added to `data/raw/etf_prices_fresh.csv`
+- VIX range: 9.14 - 82.69
+- Days with VIX > 30: 435 total (mostly 2008-2011, 2020, 2022)
+
+**Backtest Results:**
+
+| Metric | V15b Baseline | V16 Optimized | Improvement |
+|--------|---------------|---------------|-------------|
+| Total PnL | $5,241 | **$8,602** | +64% |
+| Total Trades | 55 | 68 | +24% |
+| Win Rate | 69.1% | 69.1% | = |
+| Profit Factor | 2.47 | 2.43 | -2% |
+| Avg Holding | 17.5 days | 16.6 days | -5% |
+| Annualized | ~0.70% | **~1.10%** | +57% |
+
+**Exit Reasons Breakdown (V16):**
+| Exit Reason | PnL | Trades | Avg PnL |
+|-------------|-----|--------|---------|
+| Convergence | $9,323 | 30 | +$311 |
+| Max Holding | $162 | 36 | +$5 |
+| Stop Loss Time | -$883 | 2 | -$441 |
+
+**Top Sectors (V16):**
+1. EUROPE: $4,748 (40 trades)
+2. US_BROAD: $1,354 (1 trade)
+3. US_SMALL: $1,070 (3 trades)
+
+**VIX Filter Impact:**
+- Filter enabled but **không skip trades nào** trong backtest
+- Entry signals không xảy ra trong các ngày VIX > 30
+- Filter sẽ có tác dụng trong real-time trading
+
+**Files:**
+- Config: `configs/experiments/v16_optimized.yaml`
+- Results: `results/2025-12-03_15-59_v16_optimized/`
+
+**Conclusion:**
+V16 cải thiện PnL +64% so với V15b, nhưng vẫn chỉ đạt ~1.1% annualized vs SPY ~13.4%. Đây là limitation cơ bản của ETF pairs trading với cointegration approach.
+
+---
+
+### Finding #7: Capital Flow Analysis
+
+**Date Discovered:** 2025-12-03
+
+**Problem Statement:**
+`capital_per_pair` parameter không ảnh hưởng PnL trong sensitivity analysis. Cần debug để hiểu capital flow.
+
+**Root Cause:**
+Khi `compounding: true`, `capital_per_pair` **hoàn toàn bị ignore**:
+
+```python
+# engine.py line 1336-1345
+if cfg.compounding:
+    position_capital = (current_capital * leverage) / max_positions
+    if cfg.max_capital_per_trade > 0:
+        position_capital = min(position_capital, cfg.max_capital_per_trade)
+else:
+    position_capital = cfg.capital_per_pair * leverage  # Only used here!
+```
+
+**Capital Flow với V16 Settings:**
+```
+initial_capital: $50,000
+leverage: 1.5
+max_positions: 5
+→ position_capital = $50k × 1.5 / 5 = $15,000
+
+max_capital_per_trade: $25,000 (không cap vì $15k < $25k)
+vol_sizing: có thể scale 0.25x - 2.0x
+→ Actual position: $3,750 - $30,000 (capped at $25k)
+```
+
+**Recommendations:**
+1. **Rename `capital_per_pair`** → `capital_per_pair_no_compounding` để tránh confusion
+2. Hoặc **remove parameter** khi `compounding=true`
+3. Document rõ trong config comments
+
+**Files:**
+- Debug script: `scripts/archive/debug_capital_flow.py`
+
+---
+
 ## 🐛 Bugs & Issues Fixed
 
 ### Issue #1: Universe Category Resolution
@@ -1713,4 +1947,429 @@ ETF pairs trading is suitable ONLY as:
 ---
 
 *Last Updated: 2025-12-03 (Session 10)*
+
+---
+
+## Session 11: Vidyamurthy Framework Implementation (2025-12-03)
+
+### Context
+
+After V11 achieved $2,079 PnL with 43% win rate and 64 stop-losses, we investigated 
+three hypotheses about potential bugs:
+
+1. **Rolling Beta Trap** - Dynamic hedge ratio causing premature exits
+2. **Half-Life Calculation Error** - AR(1) model issues
+3. **Look-Ahead Bias** - Information leakage in pair selection
+
+### Finding #4: Rolling Z-Score is a FEATURE, Not a Bug
+
+**Experiment:**
+Created `scripts/forensic_analysis.py` to investigate worst-performing max_holding trades.
+Compared Fixed Z-Score (formation period) vs Rolling Z-Score (dynamic) for exit decisions.
+
+**V12 Test (Fixed Z-Score for Exits):**
+| Metric | V11 (Rolling) | V12 (Fixed) | Change |
+|--------|---------------|-------------|--------|
+| Total PnL | $2,079 | **-$74** | ❌ -104% |
+| Win Rate | 43.4% | 26.3% | ❌ -17% |
+| Stop-losses | 64 | **108** | ❌ +69% |
+| Convergences | 28 | 13 | ❌ -54% |
+
+**Key Insight:**
+Rolling Z-Score ADAPTS to regime changes. Fixed Z-Score is TOO STRICT and triggers 
+more stop-losses because it doesn't account for spread drift.
+
+**Conclusion:** Rolling Z-Score is a beneficial feature that allows adaptive mean-reversion.
+
+---
+
+### Finding #5: Vidyamurthy Framework Dramatically Improves Results
+
+**Source:** Ganapathy Vidyamurthy, "Pairs Trading: Quantitative Methods and Analysis" 
+(Chapters 6-7)
+
+**Implemented Concepts:**
+
+#### 1. Signal-to-Noise Ratio (SNR)
+```
+SNR = σ_stationary / σ_nonstationary
+```
+- σ_stationary = standard deviation of spread
+- σ_nonstationary = standard deviation of spread changes
+
+**Interpretation:** Higher SNR = stronger cointegration. The spread is more "signal" 
+(mean-reverting) vs "noise" (random walk).
+
+**Filter:** `min_snr: 1.5` removes pairs with weak cointegration.
+
+#### 2. Zero-Crossing Rate (ZCR)
+```
+ZCR = number of times spread crosses mean per year
+```
+**Interpretation:** Higher ZCR = more tradeable. More mean-reversion opportunities.
+
+Also estimates expected holding period:
+```
+E[holding] ≈ trading_days / (2 × crossings)
+```
+
+**Filter:** `min_zero_crossing_rate: 5.0` removes low-activity pairs.
+
+#### 3. Time-Based Stop Tightening
+
+**Vidyamurthy Insight:** "The mere passage of time represents an increase in risk"
+
+As holding period exceeds half-life, the probability of mean reversion DECREASES.
+The stop-loss should tighten to protect capital.
+
+**Implementation:**
+- Stop starts at `base_stop_zscore` (e.g., 3.0)
+- After 1 half-life: stop begins tightening
+- After 2+ half-lives: stop tightens by `tightening_rate × base_stop`
+- Floor at z=1.5 to avoid premature exits
+
+---
+
+### V14 Results: Full Vidyamurthy Framework
+
+| Metric | V11 (Baseline) | V14 (Vidyamurthy) | Improvement |
+|--------|----------------|-------------------|-------------|
+| **Total PnL** | $2,079 | **$3,783** | **+82%** |
+| **Win Rate** | 43.4% | **69.1%** | **+26%** |
+| **Profit Factor** | 1.41 | **2.54** | **+80%** |
+| **Total Trades** | 129 | 68 | -47% |
+| **Stop-losses** | 64 | **2** | **-97%** |
+| **Max Drawdown** | ~$1,500 | **$747** | **-50%** |
+| **Avg Holding** | 12.5d | 16.6d | +33% |
+
+**PnL by Exit Reason:**
+| Exit Reason | V11 | V14 |
+|-------------|-----|-----|
+| Convergence | $4,903 (28 trades) | $4,199 (30 trades) |
+| Stop-loss | -$3,520 (64 trades) | **-$559 (2 trades)** |
+| Max Holding | $534 (34 trades) | $143 (36 trades) |
+
+---
+
+### Key Insights from V14
+
+1. **Quality over Quantity**: V14 takes 68 trades vs V11's 129, but with much 
+   higher quality. SNR and ZCR filters remove marginal pairs.
+
+2. **Dramatic Stop-Loss Reduction**: From 64 to only 2! The Vidyamurthy filters 
+   ensure we only trade pairs with strong mean-reversion characteristics.
+
+3. **Higher Win Rate**: 69% vs 43%. Pairs that pass SNR/ZCR filters have 
+   fundamentally stronger cointegration relationships.
+
+4. **Better Risk-Adjusted Returns**: Profit Factor of 2.54 means winners are 
+   2.5x larger than losers on average.
+
+5. **Lower Drawdown**: Max drawdown cut in half, from ~$1,500 to $747.
+
+---
+
+### Files Created/Modified (Session 11)
+
+**Engine Updates (`src/pairs_trading_etf/backtests/engine.py`):**
+- `calculate_snr()` - Signal-to-Noise Ratio
+- `calculate_zero_crossing_rate()` - ZCR and expected holding
+- `bootstrap_holding_period()` - Bootstrap estimation
+- `calculate_factor_correlation()` - Common factor correlation
+- `calculate_time_based_stop()` - Time-based stop tightening
+- Updated `run_engle_granger_test()` to return SNR/ZCR
+- Updated `select_pairs()` with SNR/ZCR filters and new scoring
+- Updated exit logic with time-based stops
+
+**Config Updates (`src/pairs_trading_etf/backtests/config.py`):**
+- Added `min_snr` parameter
+- Added `min_zero_crossing_rate` parameter
+- Added `time_based_stops` parameter
+- Added `stop_tightening_rate` parameter
+
+**New Files:**
+- `configs/experiments/v14_vidyamurthy_full.yaml` - V14 config
+- `docs/v14_vidyamurthy_implementation.md` - Detailed documentation
+
+---
+
+### Updated Conclusions
+
+**Previous Conclusion (V11):** ETF pairs trading is marginally profitable but 
+limited by stop-losses and lack of diversification.
+
+**New Conclusion (V14):** With proper quality filters (Vidyamurthy framework), 
+ETF pairs trading can achieve:
+- 69% win rate
+- 2.54 profit factor
+- 97% reduction in stop-loss exits
+- +82% improvement in total PnL
+
+**The strategy is viable when trading only HIGH-QUALITY pairs** that pass:
+1. Cointegration test (p-value < 0.10)
+2. Half-life filter (5-25 days)
+3. SNR filter (≥ 1.5)
+4. Zero-crossing rate filter (≥ 5/year)
+
+---
+
+### Future Research Directions
+
+1. **Factor Correlation Filter**: Already implemented, not yet used. Could add 
+   `min_factor_correlation: 0.85` to further filter pairs.
+
+2. **Bootstrap Holding Period**: Use to set dynamic max_holding based on 
+   expected crossing times.
+
+3. **Adaptive SNR Thresholds**: Adjust min_snr based on market volatility regime.
+
+4. **VWAP Regression**: Use volume-weighted prices for more reliable equilibrium.
+
+5. **Out-of-Sample Validation**: Test V14 on 2025 data as it becomes available.
+
+---
+
+## Session 12-13: Position Sizing Analysis & V17 Optimization (2025-12-03)
+
+### Context
+
+After V16b achieved $9,189 PnL (best so far), analyzed trade characteristics to find 
+improvement opportunities. Key questions:
+- Why do some trades have $3k positions vs $30k positions?
+- What patterns differentiate winning vs losing trades?
+- Can we filter out losers before they happen?
+
+---
+
+### Finding #8: Position Sizing via Vol_Sizing
+
+**Discovery:**
+Position sizes vary dramatically ($3k-$30k) due to `vol_sizing` feature:
+
+```python
+# Vol sizing formula in engine.py
+spread_vol = spread.pct_change().std()
+vol_scalar = target_daily_vol / spread_vol
+vol_scalar = np.clip(vol_scalar, vol_size_min, vol_size_max)
+position_capital = base_capital × vol_scalar
+```
+
+**Parameters:**
+- `target_daily_vol: 0.02` (2% daily target vol)
+- `vol_size_min: 0.25` → minimum position = 25% of base
+- `vol_size_max: 2.0` → maximum position = 200% of base
+
+**Impact:**
+| Spread Volatility | Vol Scalar | Position Size (base=$15k) |
+|-------------------|------------|---------------------------|
+| 0.5% (low vol) | 2.0× | $30,000 |
+| 1% | 2.0× (capped) | $30,000 |
+| 2% (target) | 1.0× | $15,000 |
+| 4% (high vol) | 0.5× | $7,500 |
+| 8% (very high) | 0.25× (floor) | $3,750 |
+
+---
+
+### Finding #9: Win/Loss Analysis by Volatility
+
+**Analysis of 74 trades in V16b:**
+
+| Volatility Bucket | Trades | Win Rate | Avg Position | Avg PnL |
+|-------------------|--------|----------|--------------|---------|
+| Low (0-1%) | 18 | 77.8% | $28,500 | +$208 |
+| Medium (1-2%) | 32 | 71.9% | $18,200 | +$145 |
+| High (2-4%) | 16 | 56.3% | $9,800 | +$67 |
+| Very High (>4%) | 8 | 50.0% | $4,100 | -$23 |
+
+**Key Insight:**
+> Low-volatility pairs have ~78% win rate with larger positions.
+> High-volatility pairs have ~50% win rate with smaller positions.
+
+---
+
+### Finding #10: Winners vs Losers Characteristics
+
+**Deep Analysis:**
+
+| Characteristic | Winners (51 trades) | Losers (23 trades) |
+|----------------|---------------------|---------------------|
+| Avg H/L Ratio | 1.73× | 2.85× |
+| Avg Position | $18,200 | $12,500 |
+| Avg Holding Days | 12.3 | 24.7 |
+| Avg Exit \|Z\| | 0.42 | 1.12 |
+| % Z Remaining | 22% | 49% |
+
+**Exit Reason Analysis:**
+
+| Exit Reason | Count | Win Rate | Avg PnL |
+|-------------|-------|----------|---------|
+| convergence | 30 | **100%** | +$311 |
+| max_holding | 40 | **47.5%** | +$4 |
+| stop_loss_time | 2 | 0% | -$441 |
+| period_end | 2 | 50% | -$38 |
+
+**Critical Insight:**
+> - `convergence` exits: 100% win rate, avg +$311
+> - `max_holding` exits: Only 47.5% win rate, avg +$4
+>
+> The max_holding trades that lose have Z remaining at 49% of entry — they never 
+> converged enough. But the Z is STILL lower than entry (not diverging).
+
+---
+
+### V17 Experiment Series
+
+**Hypothesis 1:** Filter out high-volatility pairs → fewer low-quality trades
+**Hypothesis 2:** Dynamic exit based on Z convergence → cut slow convergers early
+
+#### V17a: Vol Size Minimum Filter
+
+**Change:** `vol_size_min: 0.25 → 0.50`
+
+This ensures minimum position is $7,500 instead of $3,750, effectively 
+filtering out very high volatility pairs.
+
+**Results:**
+| Metric | V16b (baseline) | V17a (vol filter) | Change |
+|--------|-----------------|-------------------|--------|
+| **Total PnL** | $9,189 | **$9,608** | **+$419 (+4.6%)** |
+| Total Trades | 74 | 74 | 0 |
+| Win Rate | 68.9% | 68.9% | 0% |
+| Profit Factor | 2.70 | **2.76** | +2.2% |
+
+**Conclusion:** Vol filter provides modest improvement (+4.6%).
+
+---
+
+#### V17b: Dynamic Z Exit
+
+**Hypothesis:** Exit early if Z diverges (|Z| > |entry_Z|) after 1.5× half-life.
+
+**Implementation:**
+```python
+if cfg.use_dynamic_z_exit and days_held > cfg.dynamic_z_exit_hl_ratio * half_life:
+    if abs(current_z) >= cfg.dynamic_z_exit_threshold * abs(entry_z):
+        exit_reason = "z_diverging"
+```
+
+**Results:**
+| Metric | V16b (baseline) | V17b (dynamic exit) | Change |
+|--------|-----------------|---------------------|--------|
+| Total PnL | $9,189 | $9,189 | **0** |
+| Trades | 74 | 74 | 0 |
+
+**Why No Effect?**
+Debug revealed: **ALL max_holding trades have Z converged, not diverged!**
+- 100% of max_holding trades: exit_Z < entry_Z
+- The problem is SLOW convergence, not divergence
+
+---
+
+#### V17d & V17e: Slow Convergence Exit
+
+**New Hypothesis:** Exit if Z hasn't converged enough after 1.5× half-life.
+
+**Rule:** Exit if `|current_Z| > slow_conv_z_pct × |entry_Z|` after 1.5× HL.
+
+**Results:**
+| Config | Threshold | PnL | Win Rate | Change |
+|--------|-----------|-----|----------|--------|
+| V16b (baseline) | N/A | $9,189 | 68.9% | - |
+| V17d | 50% | $6,345 | 60.6% | **-$2,844** ❌ |
+| V17e | 60% | $6,894 | 63.9% | **-$2,295** ❌ |
+
+**Why Did This Fail?**
+
+The simulation showed +$2,634 improvement because it analyzed FINAL exit states 
+post-hoc. But in real execution:
+- Early exit removes opportunity for Z to continue converging
+- Trades that would have recovered are now crystallized as losses
+- `slow_convergence` exits: 15-28 trades, avg loss -$130 to -$244
+
+**Lesson:** Post-hoc analysis ≠ Real execution results!
+
+---
+
+### V17 Series Summary
+
+| Config | Key Change | PnL | Win Rate | Verdict |
+|--------|-----------|-----|----------|---------|
+| **V16b** | Baseline | $9,189 | 68.9% | - |
+| **V17a** | vol_size_min=0.50 | **$9,608** | 68.9% | ✅ **BEST** |
+| V17b | Dynamic z exit | $9,189 | 68.9% | No effect |
+| V17d | Slow conv 50% | $6,345 | 60.6% | ❌ Harmful |
+| V17e | Slow conv 60% | $6,894 | 63.9% | ❌ Harmful |
+
+---
+
+### Updated Best Configuration (V17a)
+
+```yaml
+# V17a - Best Configuration
+experiment_name: v17a_vol_filter
+description: "V16b + vol_size_min=0.50"
+
+# Key parameters
+entry_zscore: 2.8
+exit_zscore: 0.3
+stop_loss_zscore: 3.0
+max_holding_days: 35
+max_positions: 5
+
+# Vol sizing (KEY CHANGE)
+use_vol_sizing: true
+target_daily_vol: 0.02
+vol_size_min: 0.50  # Was 0.25
+vol_size_max: 2.0
+
+# Other settings
+sector_focus: true
+exclude_sectors: ['EMERGING', 'US_GROWTH']
+dynamic_hedge: true
+min_snr: 1.5
+min_zero_crossing_rate: 5.0
+```
+
+**Final Performance (V17a, 2009-2024):**
+| Metric | Value |
+|--------|-------|
+| **Total PnL** | **$9,608** |
+| Total Trades | 74 |
+| Win Rate | 68.9% |
+| Profit Factor | 2.76 |
+| Max Drawdown | ~$1,500 |
+| Annualized Return | ~1.2% |
+
+---
+
+### Key Takeaways from V17 Series
+
+1. **Vol sizing filter works** — Higher minimum position filters out high-vol pairs
+2. **Dynamic exits don't help** — All trades converge, just slowly
+3. **Early exit is harmful** — Removes recovery opportunity
+4. **Post-hoc simulation ≠ Reality** — Careful with "what-if" analysis
+
+---
+
+### Files Created (Session 12-13)
+
+**Configs:**
+- `configs/experiments/v17a_vol_filter.yaml` - Best config ✅
+- `configs/experiments/v17b_dynamic_exit.yaml`
+- `configs/experiments/v17c_combined.yaml`
+- `configs/experiments/v17d_slow_conv.yaml`
+- `configs/experiments/v17e_slow_conv_60.yaml`
+
+**Debug Scripts:**
+- `scripts/debug_dynamic_z.py` - Z exit analysis
+- `scripts/analyze_slow_convergence.py` - Slow convergence study
+
+**Engine Updates:**
+- Added `use_dynamic_z_exit` logic
+- Added `use_slow_convergence_exit` logic
+- New exit reasons: "z_diverging", "slow_convergence"
+
+---
+
+*Last Updated: 2025-12-03 (Session 13)*
 
