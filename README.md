@@ -1,25 +1,41 @@
 # Mini-Thesis Pairs Trading Pipeline
 
-Research repo for a cointegration-based pairs trading strategy on U.S. sector ETFs. Includes data fetchers, OU mean-reversion modeling, backtesting with realistic costs, compounding/leverage features, and reproducible Jupyter notebooks plus final paper.
+Research repo for a cointegration-based pairs trading strategy on U.S. sector ETFs. Includes data fetchers, OU mean-reversion modeling, backtesting with realistic costs, cross-validation framework, and reproducible Jupyter notebooks plus final paper.
+
+## 🚨 Critical Finding: Cross-Validation Results
+
+**Original V17a backtest showed $9,608 profit — but this was OVERFIT!**
+
+After implementing proper train/validation/test splits:
+
+| Period | Date Range | PnL | Win Rate |
+|--------|------------|-----|----------|
+| Train | 2009-2016 | +$2,530 | 90.0% |
+| Validation | 2017-2020 | +$1,488 | 72.7% |
+| **Test (Unseen)** | 2021-2024 | **-$3** | 36.4% |
+
+**Key Discovery:** Stop-loss was triggering on 100% of trades before mean-reversion could complete. Removing stop-loss and using time-based exits achieves near-breakeven on truly out-of-sample data.
+
+See `docs/cross_validation_findings.md` for full analysis.
 
 ## 📊 Current Status
 
-**Latest Backtest Results (V11 Crisis-Aware):**
+**Latest Cross-Validated Results (Robust Config):**
 | Metric | Value |
 |--------|-------|
-| Total PnL | $2,079 |
-| Trades | 129 |
-| Win Rate | 43.4% |
-| Profit Factor | 1.41 |
-| Max Drawdown | $992 |
-| Period | 2007-2024 (18 years) |
+| Test Period PnL | -$3 (breakeven) |
+| Test Win Rate | 36.4% |
+| Test Trades | 11 |
+| Entry Z-Score | 3.0 |
+| Stop-Loss | Disabled |
+| Max Holding | 5× half-life |
 
 **Key Findings:**
-- ETF pairs trading works as a market-neutral hedge, NOT as primary alpha source
-- Strategy underperforms buy-and-hold SPY (~10%/year) due to:
-  - Few valid pairs remain after strict filtering (only 2-7 pairs/year)
-  - Crisis period failures (2008, 2020) break cointegration
-  - ETF homogeneity limits profit opportunities
+- Original $9,608 backtest was severely overfit to historical data
+- Stop-loss is harmful for mean-reversion strategies (cuts winners early)
+- Higher entry threshold (z=3.0) reduces false signals
+- Pairs DO mean-revert, but need time (no premature stops)
+- True out-of-sample performance is near breakeven, not profitable
 
 ## Project Structure *(Core)*
 - `src/pairs_trading_etf/` – research package (data, cointegration, OU model, signals, backtests, utils)
@@ -96,19 +112,22 @@ risk:
 
 **What Works:**
 - ✅ Cointegration-based pair selection filters noise effectively
-- ✅ Half-life filtering removes slow mean-reverting pairs (keep only <60 days)
+- ✅ Half-life filtering removes slow mean-reverting pairs (keep only <25 days)
 - ✅ Z-score entry/exit signals capture short-term mean-reversion
-- ✅ Convergence trades have 100% win rate with avg +$176 profit (28 trades)
-- ✅ Strategy provides market-neutral exposure (low beta)
+- ✅ Pairs DO eventually mean-revert when given enough time
+- ✅ Higher entry threshold (z=3.0) improves signal quality
 
 **What Doesn't Work:**
-- ❌ Stop-loss trades dominate losses (-$55 avg, 64 trades in V11)
-- ❌ Crisis periods (2008, 2020) break cointegration relationships
-- ❌ Few valid pairs remain after strict filtering (2-4 pairs/year)
-- ❌ Annual returns (~0.23%) below SPY (~10%) - better as hedge than primary strategy
+- ❌ **Stop-loss kills mean-reversion trades** — exits before convergence
+- ❌ Lower entry thresholds (z<2.5) generate too many false signals
+- ❌ Full-period backtests hide overfitting — always use train/val/test splits
+- ❌ Crisis periods (2008, 2020, 2022) stress cointegration relationships
+
+**Critical Lesson:**
+The $9,608 backtest profit was an illusion of overfitting. Proper cross-validation reveals near-breakeven performance on unseen data.
 
 **Recommended Use Case:**
-Pairs trading as portfolio diversifier/hedge, NOT primary strategy.
+Pairs trading as portfolio diversifier/hedge, NOT primary alpha strategy.
 
 ## 2. Project Layout *(Core)*
 - Table describing each top-level folder (data, src, notebooks, results, reports, notes, advisor_logs, configs, tests, docs)
@@ -155,26 +174,32 @@ Pairs trading as portfolio diversifier/hedge, NOT primary strategy.
 
 ### Research Logs
 - `docs/research_log.md` - Detailed session-by-session research narrative
+- `docs/cross_validation_findings.md` - **Critical overfitting discovery**
+- `docs/kalman_analysis_summary.md` - Kalman filter analysis
 - `docs/week2_work_summary.md` - Week 2 deep debugging summary
-- `docs/debug_summary.md` - Technical debugging findings
 
 ### Key Scripts
 | Script | Purpose |
 |--------|---------|
 | `scripts/run_backtest.py` | Main backtest runner with config support |
-| `scripts/debug_trades.py` | Analyze and visualize all trades |
-| `scripts/deep_debug.py` | PnL calculation verification |
+| `scripts/run_cv_backtest.py` | **Cross-validated backtest with train/val/test** |
 | `scripts/visualize_trade.py` | Individual trade visualization |
 | `scripts/download_fresh_data.py` | Fetch latest ETF price data |
+
+### Core Modules
+| Module | Purpose |
+|--------|---------|
+| `src/pairs_trading_etf/backtests/engine.py` | Backtest engine |
+| `src/pairs_trading_etf/backtests/validation.py` | Pair stability validation |
+| `src/pairs_trading_etf/backtests/cross_validation.py` | Train/val/test framework |
 
 ### Version History
 | Version | Date | Key Changes |
 |---------|------|-------------|
 | V4 | 2025-12-02 | First complete backtest, $2,297 PnL |
-| V5 | 2025-12-03 | Optimized parameters |
-| V9 | 2025-12-03 | Compounding & leverage implemented |
-| V10 | 2025-12-03 | Risk management (capital limits) |
-| V11 | 2025-12-03 | Crisis-aware config, best results |
+| V11 | 2025-12-03 | Crisis-aware config |
+| V17a | 2025-12-03 | Best full-period results ($9,608) — OVERFIT |
+| **CV** | 2025-12-03 | **Cross-validation reveals true performance: ~$0** |
 
 ---
-*Last Updated: 2025-12-03*
+*Last Updated: 2025-12-03 (Cross-Validation Update)*
