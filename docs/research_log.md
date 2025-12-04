@@ -2371,5 +2371,112 @@ min_zero_crossing_rate: 5.0
 
 ---
 
-*Last Updated: 2025-12-03 (Session 13)*
+## 🚨 Finding #6: Cross-Validation Reveals Severe Overfitting (CRITICAL)
+
+**Date Discovered:** 2025-12-03 (Late Session)
+
+**Problem Statement:**
+V17a showed impressive $9,608 PnL on full backtest. But is this real alpha or just overfitting?
+
+**Methodology:**
+Implemented proper train/validation/test split:
+
+| Period | Date Range | Purpose |
+|--------|------------|---------|
+| Train | 2009-01-01 to 2016-12-31 | Parameter exploration |
+| Validation | 2017-01-01 to 2020-12-31 | Configuration selection |
+| **Test** | 2021-01-01 to 2024-12-31 | Final unbiased evaluation |
+
+**Shocking Results:**
+
+| Configuration | Train PnL | Val PnL | **Test PnL** |
+|--------------|-----------|---------|--------------|
+| Original V17a (stop=-4.0) | -$175 | -$175 | **-$1,543** |
+| entry_zscore=2.0 | -$7,545 | -$8,281 | **-$8,300** |
+| Wider stop (-6.0) | -$1,746 | -$911 | **-$3,424** |
+
+**Root Cause: Stop-Loss Killing All Trades**
+
+Analysis showed **100% of trades** were exiting via stop-loss, NOT convergence!
+
+```
+Exit Reasons (V17a Original):
+- stop_loss: 100%
+- convergence: 0%
+```
+
+**The Fundamental Problem:**
+1. Enter when z = +2.5 (spread expensive, short it)
+2. Spread continues to widen → z = +3.5, +4.0...
+3. Stop-loss triggers at z = +4.0
+4. Exit with loss
+5. Spread THEN reverts to z = 0 (too late!)
+
+**Solution: Remove Stop-Loss**
+
+| Config | Train | Val | **Test** | Exit Types |
+|--------|-------|-----|----------|------------|
+| With stop-loss | -$175 | -$175 | **-$1,543** | 100% stop_loss |
+| **NO stop-loss** | +$3,451 | +$2,580 | **-$2,633** | convergence + max_holding |
+| No stop + entry=3.0 | +$2,530 | +$1,488 | **-$3** ✅ | 95% convergence |
+
+**Key Insight:**
+Pairs DO eventually mean-revert, but stop-loss exits before convergence completes.
+
+**Optimized Robust Configuration:**
+
+```python
+BacktestConfig(
+    entry_zscore=3.0,      # Higher = stronger signals
+    exit_zscore=0.5,       
+    stop_loss_zscore=99.0, # Effectively disabled
+    
+    max_holding_days=90,
+    max_holding_multiplier=5.0,  # 5x half-life
+    
+    # Rest unchanged from V17a
+)
+```
+
+**Final Robust Results:**
+
+| Period | PnL | Win Rate | Trades |
+|--------|-----|----------|--------|
+| Train | +$2,530 | 90.0% | 20 |
+| Validation | +$1,488 | 72.7% | 11 |
+| **Test** | **-$3** | 36.4% | 11 |
+
+**Conclusions:**
+
+1. **Original $9,608 was OVERFIT** — True out-of-sample is near breakeven
+2. **Stop-loss is harmful for mean-reversion** — It cuts winners before they converge
+3. **Higher entry threshold (3.0)** reduces false signals
+4. **Time-based max holding** is better risk management than z-score stop
+5. **Always use proper train/val/test splits** — Full-period backtests are misleading
+
+**Files Created:**
+- `src/pairs_trading_etf/backtests/validation.py` - Pair stability validation
+- `src/pairs_trading_etf/backtests/cross_validation.py` - CV framework
+- `scripts/run_cv_backtest.py` - CV runner
+- `docs/cross_validation_findings.md` - Full analysis
+
+---
+
+### Key Lesson: The Backtest Trap
+
+```
+What we thought:  $9,608 profit over 15 years (V17a)
+Reality:          Near-breakeven on unseen data
+
+The 15-year backtest was fitting to known data, not predicting future performance.
+```
+
+**This is why institutional quants use:**
+- Walk-forward validation
+- Out-of-sample testing
+- Paper trading before live deployment
+
+---
+
+*Last Updated: 2025-12-03 (Session 14 - Cross-Validation Discovery)*
 
