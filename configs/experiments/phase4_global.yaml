@@ -1,0 +1,62 @@
+experiment_name: phase4_global
+description: "Phase4 global universe: entry 2.8, exit 0.4, broader ETF list"
+
+formation_days: 252
+trading_days: 252
+price_data_path: data/raw/global/global_etf_prices_usd.csv
+etf_metadata_path: configs/global_etf_metadata.yaml
+
+pvalue_threshold: 0.05
+use_log_prices: true
+min_half_life: 5.0
+max_half_life: 25.0
+min_correlation: 0.70
+max_correlation: 0.97
+min_spread_range_pct: 0.02
+
+use_optimal_entry_threshold: false
+entry_threshold_sigma: 2.8
+exit_threshold_sigma: 0.4
+exit_tolerance_sigma: 0.05
+stop_loss_sigma: 3.5
+
+use_bootstrap_holding_period: true
+bootstrap_n_samples: 1000
+
+use_adaptive_lookback: true
+adaptive_lookback_multiplier: 4.0
+adaptive_lookback_min: 30
+adaptive_lookback_max: 120
+use_fixed_exit_params: true
+
+time_based_stops: true
+stop_tightening_rate: 0.15
+max_holding_days: 70
+dynamic_max_holding: true
+max_holding_multiplier: 3.0
+max_dynamic_holding_days: 0
+
+max_positions: 8
+min_pairs_for_trading: 2
+compounding: true
+leverage: 1.5
+
+dynamic_hedge: true
+hedge_ratio_method: auto
+hedge_update_days: 63
+transaction_cost_bps: 10.0
+
+min_snr: 1.2
+min_zero_crossing_rate: 4.0
+use_adaptive_stop_loss: true
+sector_focus: false
+exclude_sectors: []
+
+blacklist_stoploss_rate: 0.3
+blacklist_min_trades: 3
+
+output_dir: results
+save_trades: true
+save_summary: true
+save_config_snapshot: true
+timestamped_output: true

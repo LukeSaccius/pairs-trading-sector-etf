@@ -28,8 +28,8 @@ data:
 
 # Data quality thresholds
 data_quality:
-  min_history_days: 1260  # 5 years minimum
-  max_missing_pct: 0.10   # Max 10% missing
+  min_history_days: 500   # Relaxed to keep more history (was 1260)
+  max_missing_pct: 0.30   # Allow up to 30% missing (was 10%)
   min_avg_volume: 100000  # Min 100k shares/day average
 
 # Output paths
@@ -115,25 +115,25 @@ universe:
       description: "US sector ETFs (SPDRs and alternatives)"
       etfs: [
         # Technology
-        XLK, VGT, IYW, FTEC, IGV, SMH, SOXX, QQQ,
+        XLK, VGT, IYW, FTEC, IGV, SMH, SOXX, QQQ, QQQM, ARKK, ARKW,
         # Financials
-        XLF, VFH, IYF, KBE, KRE, IAI,
+        XLF, VFH, IYF, KBE, KRE, IAI, IYG, VFV,
         # Healthcare
-        XLV, VHT, IBB, XBI, IHI,
+        XLV, VHT, IBB, XBI, IHI, IYH, PSCH,
         # Energy
-        XLE, VDE, IYE, XOP, OIH,
+        XLE, VDE, IYE, XOP, OIH, DBE,
         # Consumer Discretionary
-        XLY, VCR, IYC, XRT, XHB, ITB,
+        XLY, VCR, IYC, XRT, XHB, ITB, PMR,
         # Consumer Staples
-        XLP, VDC, IYK,
+        XLP, VDC, IYK, IVE,
         # Industrials
         XLI, VIS, IYJ, ITA, XAR,
         # Materials
-        XLB, VAW, IYM, XME,
+        XLB, VAW, IYM, XME, DBB,
         # Utilities
         XLU, VPU, IDU,
         # Real Estate
-        XLRE, VNQ, IYR, RWR, SCHH,
+        XLRE, VNQ, IYR, RWR, SCHH, REET,
         # Communications
         XLC, VOX, IYZ
       ]
@@ -145,15 +145,15 @@ universe:
         # Value
         VTV, IVE, SPYV, IWD, SCHV, RPV, VLUE,
         # Growth
-        VUG, IVW, SPYG, IWF, SCHG, RPG, VONG,
+        VUG, IVW, SPYG, IWF, SCHG, RPG, VONG, QUAL,
         # Momentum
         MTUM, PDP, DWAS,
         # Quality
-        QUAL, SPHQ, FQAL,
+        SPHQ, FQAL,
         # Low Volatility
         SPLV, USMV, SPHD, LVHD,
         # Dividend
-        VYM, DVY, SCHD, SDY, HDV, VIG, DGRO,
+        VYM, DVY, SCHD, SDY, HDV, VIG, DGRO, VYMI,
         # Small Value
         VBR, IWN, SLYV,
         # Small Growth
@@ -165,11 +165,11 @@ universe:
       description: "US fixed income ETFs"
       etfs: [
         # Treasury
-        TLT, IEF, IEI, SHY, GOVT, SCHO, SCHR, SPTL,
+        TLT, IEF, IEI, SHY, SHV, GOVT, SCHO, SCHR, SPTL,
         # Aggregate
-        AGG, BND, SCHZ,
+        AGG, BND, SCHZ, BNDX,
         # Corporate
-        LQD, VCIT, VCSH, IGIB,
+        LQD, VCIT, VCLT, VCSH, IGIB,
         # High Yield
         HYG, JNK, SJNK, USHY,
         # TIPS
@@ -421,7 +421,7 @@ universe:
       description: "Commodity ETFs"
       etfs: [
         GLD, IAU, SLV, PPLT, PALL,
-        DBC, PDBC, DBA, DBO, USO, UNG,
+        DBC, PDBC, DBA, DBO, DBB, USO, UNG, GSG,
         GDX, GDXJ, SIL, COPX, MOO
       ]
       

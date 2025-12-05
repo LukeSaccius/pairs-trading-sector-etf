@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 import time
 from collections import defaultdict
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Tuple
 
 import numpy as np
 import pandas as pd
@@ -36,11 +36,11 @@ def calculate_snr(spread: pd.Series, half_life: float) -> float:
     """
     Calculate Signal-to-Noise Ratio (SNR) per Vidyamurthy Ch.6.
     
-    SNR = σ_stationary / σ_nonstationary
+    SNR = sigma_stationary / sigma_nonstationary
     
     For a mean-reverting spread:
-    - σ_stationary = standard deviation of the spread
-    - σ_nonstationary = standard deviation of innovations (changes)
+    - sigma_stationary = standard deviation of the spread
+    - sigma_nonstationary = standard deviation of innovations (changes)
     
     Higher SNR indicates stronger cointegration (mean-reverting vs noise).
     
@@ -81,7 +81,7 @@ def calculate_zero_crossing_rate(spread: pd.Series, lookback: int = 252) -> Tupl
     its equilibrium (mean). Higher rate = more tradeable.
     
     Also calculates expected holding period:
-    E[holding_period] ≈ trading_days / (2 * zero_crossings)
+    E[holding_period] =~ trading_days / (2 * zero_crossings)
     
     Parameters
     ----------
@@ -115,7 +115,7 @@ def calculate_zero_crossing_rate(spread: pd.Series, lookback: int = 252) -> Tupl
     zcr_annual = crossings * (252 / n_days)
     
     # Expected holding period (time between entries and exits)
-    # Vidyamurthy: E[T] ≈ N / (2 * crossings) where N is number of observations
+    # Vidyamurthy: E[T] ~= N / (2 * crossings) where N is number of observations
     if crossings > 0:
         expected_holding = n_days / (2.0 * crossings)
     else:
@@ -214,7 +214,7 @@ def calculate_time_based_stop(
     holding_days: int,
     half_life: float,
     base_stop_zscore: float,
-    tightening_rate: float = 0.1,
+    tightening_rate: float = 0.15,
 ) -> Tuple[bool, float]:
     """
     Time-based stop tightening per Vidyamurthy insight.
@@ -296,16 +296,16 @@ def estimate_kalman_hedge_ratio(
     Based on Palomar (2025) Chapter 15.6 "Kalman Filtering for Pairs Trading".
     
     Basic Model (Section 15.6.3, Eq. 15.3):
-        y_t = [1, x_t] @ [μ_t, γ_t]' + ε_t    (observation)
-        [μ_{t+1}, γ_{t+1}]' = I @ [μ_t, γ_t]' + η_t  (random walk state)
+        y_t = [1, x_t] @ [mu_t, gamma_t]' + epsilon_t    (observation)
+        [mu_{t+1}, gamma_{t+1}]' = I @ [mu_t, gamma_t]' + eta_t  (random walk state)
     
     Extended Momentum Model (Eq. 15.4):
-        State: [μ_t, γ_t, γ̇_t]' where γ̇ is hedge ratio velocity
-        Observation: y_t = [1, x_t, 0] @ state + ε_t
+        State: [mu_t, gamma_t, gamma_dot_t]' where gamma_dot is hedge ratio velocity
+        Observation: y_t = [1, x_t, 0] @ state + epsilon_t
         State transition:
-            μ_{t+1} = μ_t + η_μ
-            γ_{t+1} = γ_t + γ̇_t + η_γ  (local linear trend)
-            γ̇_{t+1} = γ̇_t + η_γ̇
+            mu_{t+1} = mu_t + eta_mu
+            gamma_{t+1} = gamma_t + gamma_dot_t + eta_gamma  (local linear trend)
+            gamma_dot_{t+1} = gamma_dot_t + eta_gamma_dot
     
     The momentum model produces SMOOTHER hedge ratio estimates because it
     models the rate of change, acting as regularization.
@@ -384,8 +384,8 @@ def _kalman_basic_model(
     """
     Basic 2-state Kalman filter (Palomar Eq. 15.3).
     
-    State: [μ_t, γ_t]' (intercept, hedge_ratio)
-    Observation: y_t = [1, x_t] @ state + ε_t
+    State: [mu_t, gamma_t]' (intercept, hedge_ratio)
+    Observation: y_t = [1, x_t] @ state + epsilon_t
     State transition: Random walk (identity matrix)
     """
     # State: [intercept, hedge_ratio]
@@ -471,14 +471,14 @@ def _kalman_momentum_model(
     estimates. This is the "local linear trend" model commonly used in
     time series analysis.
     
-    State: [μ_t, γ_t, γ̇_t]' (intercept, hedge_ratio, hedge_ratio_velocity)
+    State: [mu_t, gamma_t, gamma_dot_t]' (intercept, hedge_ratio, hedge_ratio_velocity)
     
     State Transition Matrix:
-        A = [[1, 0, 0],    # μ_{t+1} = μ_t
-             [0, 1, 1],    # γ_{t+1} = γ_t + γ̇_t
-             [0, 0, 1]]    # γ̇_{t+1} = γ̇_t
+        A = [[1, 0, 0],    # mu_{t+1} = mu_t
+             [0, 1, 1],    # gamma_{t+1} = gamma_t + gamma_dot_t
+             [0, 0, 1]]    # gamma_dot_{t+1} = gamma_dot_t
              
-    Observation: y_t = [1, x_t, 0] @ state + ε_t
+    Observation: y_t = [1, x_t, 0] @ state + epsilon_t
     
     The key insight is that hedge ratio changes are modeled as having
     MOMENTUM - if it's been increasing, it will likely continue increasing.
@@ -635,8 +635,8 @@ def calculate_volatility_adjusted_size(
     Calculate position size adjusted for spread volatility.
     
     Position is scaled inversely to volatility:
-    - High volatility spread → smaller position
-    - Low volatility spread → larger position
+    - High volatility spread -> smaller position
+    - Low volatility spread -> larger position
     
     Parameters
     ----------
@@ -866,7 +866,7 @@ def select_pairs(
     
     # Import validation functions if available
     try:
-        from .validation import validate_pair_stability, check_rolling_consistency
+        from .validation import check_rolling_consistency
         validation_available = True
     except ImportError:
         validation_available = False
@@ -1086,7 +1086,10 @@ def run_trading_simulation(
     trades = []
     n_dates = len(prices)
     n_pairs = len(pairs)
-    warmup = cfg.zscore_lookback
+    use_adaptive = getattr(cfg, 'use_adaptive_lookback', False)
+    lb_min = getattr(cfg, 'adaptive_lookback_min', 30)
+    lb_max = getattr(cfg, 'adaptive_lookback_max', cfg.zscore_lookback)
+    warmup = max(30, lb_max if use_adaptive else cfg.zscore_lookback)
     
     if n_pairs == 0 or n_dates <= warmup:
         return trades, current_capital if current_capital else cfg.initial_capital
@@ -1095,12 +1098,8 @@ def run_trading_simulation(
     if current_capital is None:
         current_capital = cfg.initial_capital
     
-    available_capital = current_capital * cfg.leverage
-    
     # Dynamic capital per pair: divide available among max positions
     max_pos = cfg.max_positions if cfg.max_positions > 0 else len(pairs)
-    capital_per_position = available_capital / max_pos
-    
     # Create pair name mapping
     pair_names = {pair: f"{pair[0]}_{pair[1]}" for pair in pairs}
     
@@ -1109,25 +1108,30 @@ def run_trading_simulation(
     entry_data = {pair: {} for pair in pairs}
     current_hr = dict(hedge_ratios)
     
-    # Calculate initial spreads
+    # Calculate initial spreads with NaN/zero price handling
     spreads = pd.DataFrame(index=prices.index)
     for pair in pairs:
         leg_x, leg_y = pair
         hr = current_hr[pair]
-        log_x = np.log(prices[leg_x])
-        log_y = np.log(prices[leg_y])
+
+        # Check for invalid prices (NaN, zero, negative)
+        px = prices[leg_x]
+        py = prices[leg_y]
+        if (px <= 0).any() or (py <= 0).any():
+            logger.warning(f"Invalid prices detected for pair {pair_names[pair]}, skipping")
+            spreads[pair_names[pair]] = np.nan
+            continue
+
+        log_x = np.log(px)
+        log_y = np.log(py)
         spread = log_x - hr * log_y
         spreads[pair_names[pair]] = spread
     
     # Rolling z-score with adaptive lookback per-pair (QMA compliance)
     # If use_adaptive_lookback=True, each pair gets lookback = f(half_life)
-    use_adaptive = getattr(cfg, 'use_adaptive_lookback', False)
-    
     if use_adaptive:
         # Per-pair lookback based on half-life
         mult = getattr(cfg, 'adaptive_lookback_multiplier', 4.0)
-        lb_min = getattr(cfg, 'adaptive_lookback_min', 30)
-        lb_max = getattr(cfg, 'adaptive_lookback_max', 120)
         
         rolling_mean = pd.DataFrame(index=prices.index)
         rolling_std = pd.DataFrame(index=prices.index)
@@ -1157,9 +1161,29 @@ def run_trading_simulation(
         rolling_std = spreads.rolling(window=cfg.zscore_lookback, min_periods=30).std()
         zscores = (spreads - rolling_mean) / rolling_std
     
+    # Determine hedge ratio methodology
+    hedge_method = getattr(cfg, 'hedge_ratio_method', 'auto')
+    if isinstance(hedge_method, str):
+        method_normalized = hedge_method.strip().lower()
+    else:
+        method_normalized = 'auto'
+    use_kalman = getattr(cfg, 'use_kalman_hedge', False)
+    use_dynamic_ols = getattr(cfg, 'dynamic_hedge', False)
+    if method_normalized != 'auto':
+        if method_normalized == 'kalman':
+            use_kalman = True
+            use_dynamic_ols = False
+        elif method_normalized in {'rolling', 'ols'}:
+            use_dynamic_ols = True
+            use_kalman = False
+        elif method_normalized == 'fixed':
+            use_dynamic_ols = False
+            use_kalman = False
+        logger.info("Hedge ratio method override: %s", method_normalized)
+    
     # Pre-compute Kalman hedge ratios if enabled
     kalman_results = {}
-    if getattr(cfg, 'use_kalman_hedge', False):
+    if use_kalman:
         use_momentum = getattr(cfg, 'kalman_use_momentum', True)
         model_type = "momentum" if use_momentum else "basic"
         logger.info(f"Computing Kalman filter hedge ratios ({model_type} model)...")
@@ -1208,13 +1232,15 @@ def run_trading_simulation(
     
     dates = prices.index.tolist()
     
-    for t in range(warmup, n_dates):
-        current_date = dates[t]
+    # FIX LOOK-AHEAD BIAS: Start from warmup+1 so we have t-1 for signals
+    for t in range(warmup + 1, n_dates):
+        current_date = dates[t]        # Execution date (today)
+        signal_date = dates[t - 1]      # Signal date (yesterday's close)
         
         # Kalman hedge ratio update (if enabled)
         # Spreads are already pre-computed with Kalman hedge ratios
         # Only update current_hr for position management
-        if getattr(cfg, 'use_kalman_hedge', False):
+        if use_kalman:
             for pair in pairs:
                 if pair in kalman_results and current_date in kalman_results[pair].index:
                     if position_state[pair] == 0:  # Only update when not in position
@@ -1224,7 +1250,7 @@ def run_trading_simulation(
             # Z-scores already computed from Kalman-adjusted spreads
         
         # Dynamic hedge ratio update (OLS-based, if not using Kalman)
-        elif cfg.dynamic_hedge and t % cfg.hedge_update_days == 0 and t > cfg.hedge_update_days:
+        elif use_dynamic_ols and t % cfg.hedge_update_days == 0 and t > cfg.hedge_update_days:
             for pair in pairs:
                 try:
                     new_hr, _ = update_hedge_ratio(
@@ -1258,6 +1284,7 @@ def run_trading_simulation(
                 zscores = (spreads - rolling_mean) / rolling_std
         
         # Check exits
+        # FIX LOOK-AHEAD BIAS: Signal from t-1 (signal_date), execution at t (current_date)
         for pair in pairs:
             if position_state[pair] == 0:
                 continue
@@ -1271,23 +1298,25 @@ def run_trading_simulation(
             # This prevents "Rolling Beta Trap" where exit uses different distribution
             if getattr(cfg, 'use_fixed_exit_params', True):
                 # Recalculate spread using hr from entry time
+                # SIGNAL uses signal_date (t-1) prices for z-score calculation
                 leg_x, leg_y = pair
-                log_x = np.log(prices.loc[current_date, leg_x])
-                log_y = np.log(prices.loc[current_date, leg_y])
+                log_x = np.log(prices.loc[signal_date, leg_x])
+                log_y = np.log(prices.loc[signal_date, leg_y])
                 hr_entry = entry.get('hr', current_hr[pair])  # Use entry hr
                 spread = log_x - hr_entry * log_y
                 
-                # Use μ and σ from entry time for consistent exit evaluation
-                mu_entry = entry.get('mu_entry', rolling_mean.loc[current_date, pair_name])
-                sigma_entry = entry.get('sigma_entry', rolling_std.loc[current_date, pair_name])
+                # Use mu and sigma from entry time for consistent exit evaluation
+                mu_entry = entry.get('mu_entry', rolling_mean.loc[signal_date, pair_name])
+                sigma_entry = entry.get('sigma_entry', rolling_std.loc[signal_date, pair_name])
                 if sigma_entry > 0:
                     z = (spread - mu_entry) / sigma_entry
                 else:
                     z = 0.0
             else:
                 # Original behavior: use rolling z-score with rolling hr
-                spread = spreads.loc[current_date, pair_name]
-                z = zscores.loc[current_date, pair_name]
+                # SIGNAL uses signal_date (t-1)
+                spread = spreads.loc[signal_date, pair_name]
+                z = zscores.loc[signal_date, pair_name]
             
             if pd.isna(z):
                 continue
@@ -1301,7 +1330,11 @@ def run_trading_simulation(
             # Dynamic max holding based on half-life
             if cfg.dynamic_max_holding:
                 # Scale max holding by half-life: faster mean-reversion = shorter holding
-                max_hold = min(int(cfg.max_holding_multiplier * hl), cfg.max_holding_days)
+                max_hold = int(np.ceil(getattr(cfg, 'max_holding_multiplier', 3.0) * hl))
+                dyn_cap = getattr(cfg, 'max_dynamic_holding_days', 0)
+                if dyn_cap > 0:
+                    max_hold = min(max_hold, dyn_cap)
+                max_hold = max(1, max_hold)
             else:
                 max_hold = cfg.max_holding_days
             
@@ -1366,7 +1399,24 @@ def run_trading_simulation(
                 # Get exit tolerance (Ch.8: exit if within tolerance band of exit threshold)
                 exit_tol = getattr(cfg, 'exit_tolerance_sigma', 0.1)
                 exit_thresh = getattr(cfg, 'exit_threshold_sigma', cfg.exit_zscore if hasattr(cfg, 'exit_zscore') else 0.0)
-                stop_sigma = getattr(cfg, 'stop_loss_sigma', cfg.stop_loss_zscore if hasattr(cfg, 'stop_loss_zscore') else 4.0)
+                
+                # Adaptive stop-loss based on half-life
+                # Faster mean-reversion (short HL) -> tighter stop (should recover quickly)
+                # Slower mean-reversion (long HL) -> wider stop (needs more time)
+                base_stop = getattr(cfg, 'stop_loss_sigma', 4.0)
+                use_adaptive_stop = getattr(cfg, 'use_adaptive_stop_loss', False)
+                
+                if use_adaptive_stop:
+                    # Scale stop with half-life: base + 0.5 * (HL/10 - 1)
+                    # HL=5:  3.5 + 0.5*(-0.5) = 3.25 sigma
+                    # HL=10: 3.5 + 0.5*(0)    = 3.5 sigma
+                    # HL=20: 3.5 + 0.5*(1)    = 4.0 sigma
+                    # HL=30: 3.5 + 0.5*(2)    = 4.5 sigma
+                    hl_factor = (hl / 10.0) - 1.0
+                    stop_sigma = base_stop + 0.5 * hl_factor
+                    stop_sigma = max(3.0, min(stop_sigma, 5.0))  # Clamp [3.0, 5.0]
+                else:
+                    stop_sigma = base_stop
                 
                 if direction == 1:  # Long spread
                     # Exit if z >= -(exit_threshold + tolerance) i.e. within tolerance of mean
@@ -1482,13 +1532,15 @@ def run_trading_simulation(
                     break
                 
                 pair_name = pair_names[pair]
-                z = zscores.loc[current_date, pair_name]
-                spread = spreads.loc[current_date, pair_name]
+                # FIX LOOK-AHEAD BIAS: Signal from signal_date (t-1), execution at current_date (t)
+                z = zscores.loc[signal_date, pair_name]      # Signal from yesterday
+                spread = spreads.loc[signal_date, pair_name]  # Signal from yesterday
                 
                 if pd.isna(z):
                     continue
                 
                 leg_x, leg_y = pair
+                # EXECUTION prices from current_date (today)
                 px = prices.loc[current_date, leg_x]
                 py = prices.loc[current_date, leg_y]
                 hr = current_hr[pair]
@@ -1532,36 +1584,38 @@ def run_trading_simulation(
                     position_state[pair] = 1
                     entry_data[pair] = {
                         't': t,
-                        'date': current_date,
-                        'z': z,
-                        'spread': spread,
-                        'px': px,
-                        'py': py,
+                        'date': current_date,  # Execution date
+                        'signal_date': signal_date,  # Signal date for reference
+                        'z': z,  # Z-score from signal_date
+                        'spread': spread,  # Spread from signal_date
+                        'px': px,  # Execution price (current_date)
+                        'py': py,  # Execution price (current_date)
                         'hr': hr,
                         'qty_x': notional_x / px,
                         'qty_y': -notional_y / py,
                         'capital': current_capital,
-                        # QMA Level 2: Save μ and σ at entry for fixed exit z-score
-                        'mu_entry': rolling_mean.loc[current_date, pair_name],
-                        'sigma_entry': rolling_std.loc[current_date, pair_name],
+                        # QMA Level 2: Save mu and sigma at SIGNAL time for fixed exit z-score
+                        'mu_entry': rolling_mean.loc[signal_date, pair_name],
+                        'sigma_entry': rolling_std.loc[signal_date, pair_name],
                     }
                     n_active += 1
                 elif z >= entry_thresh:
                     position_state[pair] = -1
                     entry_data[pair] = {
                         't': t,
-                        'date': current_date,
-                        'z': z,
-                        'spread': spread,
-                        'px': px,
-                        'py': py,
+                        'date': current_date,  # Execution date
+                        'signal_date': signal_date,  # Signal date for reference
+                        'z': z,  # Z-score from signal_date
+                        'spread': spread,  # Spread from signal_date
+                        'px': px,  # Execution price (current_date)
+                        'py': py,  # Execution price (current_date)
                         'hr': hr,
                         'qty_x': -notional_x / px,
                         'qty_y': notional_y / py,
                         'capital': current_capital,
-                        # QMA Level 2: Save μ and σ at entry for fixed exit z-score
-                        'mu_entry': rolling_mean.loc[current_date, pair_name],
-                        'sigma_entry': rolling_std.loc[current_date, pair_name],
+                        # QMA Level 2: Save mu and sigma at SIGNAL time for fixed exit z-score
+                        'mu_entry': rolling_mean.loc[signal_date, pair_name],
+                        'sigma_entry': rolling_std.loc[signal_date, pair_name],
                     }
                     n_active += 1
     
@@ -1604,8 +1658,9 @@ def run_trading_simulation(
         exit_notional = abs(entry['qty_x']) * px + abs(entry['qty_y']) * py
         cost = (entry_notional + exit_notional) * (cfg.transaction_cost_bps / 10000)
         pnl -= cost
-        
-        holding_days = len(prices) - 1 - entry['t']
+
+        # Ensure holding_days is at least 1 to avoid edge cases
+        holding_days = max(1, len(prices) - 1 - entry['t'])
         
         trades.append({
             'pair': pair,
@@ -1716,7 +1771,14 @@ def run_walkforward_backtest(
         formation_end = pd.Timestamp(f'{formation_year}-12-31')
         
         mask = (prices.index >= formation_start) & (prices.index <= formation_end)
-        formation_prices = prices.loc[mask].dropna(axis=1, how='any')
+        # Allow small gaps in formation data: keep columns with <=20% missing, then fill
+        formation_prices = prices.loc[mask]
+        if formation_prices.isna().values.any():
+            missing = formation_prices.isna().mean()
+            cols = missing[missing <= 0.20].index
+            formation_prices = formation_prices[cols].ffill().bfill()
+        else:
+            formation_prices = formation_prices.copy()
         
         if len(formation_prices) < cfg.formation_days * 0.8:
             logger.warning(f"Insufficient formation data for {trading_year}")

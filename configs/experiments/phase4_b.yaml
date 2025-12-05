@@ -1,0 +1,66 @@
+experiment_name: phase4_b_balanced
+description: "Phase4 sweep candidate B: entry 2.8, exit 0.4, HL max 25, max_pos 6, min_pairs 1"
+
+formation_days: 252
+trading_days: 252
+price_data_path: data/raw/etf_prices_fresh.csv
+etf_metadata_path: configs/etf_metadata.yaml
+
+pvalue_threshold: 0.05
+use_log_prices: true
+min_half_life: 5.0
+max_half_life: 25.0
+min_correlation: 0.75
+max_correlation: 0.95
+min_spread_range_pct: 0.02
+
+use_optimal_entry_threshold: false
+entry_threshold_sigma: 2.8
+exit_threshold_sigma: 0.4
+exit_tolerance_sigma: 0.05
+stop_loss_sigma: 3.5
+
+use_bootstrap_holding_period: true
+bootstrap_n_samples: 1000
+
+use_adaptive_lookback: true
+adaptive_lookback_multiplier: 4.0
+adaptive_lookback_min: 30
+adaptive_lookback_max: 120
+use_fixed_exit_params: true
+
+time_based_stops: true
+stop_tightening_rate: 0.15
+max_holding_days: 60
+dynamic_max_holding: true
+max_holding_multiplier: 3.0
+max_dynamic_holding_days: 0
+
+max_positions: 6
+min_pairs_for_trading: 1
+compounding: true
+leverage: 1.5
+
+dynamic_hedge: true
+hedge_ratio_method: auto
+hedge_update_days: 63
+transaction_cost_bps: 10.0
+
+min_snr: 1.5
+min_zero_crossing_rate: 5.0
+use_adaptive_stop_loss: true
+sector_focus: true
+exclude_sectors:
+  - BONDS_GOV
+  - BONDS_CORP
+  - COMMODITIES
+  - EMERGING
+
+blacklist_stoploss_rate: 0.3
+blacklist_min_trades: 3
+
+output_dir: results
+save_trades: true
+save_summary: true
+save_config_snapshot: true
+timestamped_output: true
