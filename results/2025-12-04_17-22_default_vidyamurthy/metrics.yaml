@@ -1,0 +1,84 @@
+avg_holding_days: 9.640287769784173
+avg_loser: -40.13420233119594
+avg_pnl: -2.8026387759445797
+avg_winner: 30.94918580825527
+by_exit_reason:
+  convergence:
+    avg_pnl: 35.14518698437846
+    total_pnl: 4006.5513162191446
+    trades: 114
+    win_rate: 99.12280701754386
+  max_holding:
+    avg_pnl: -4.604038294286971
+    total_pnl: -230.20191471434856
+    trades: 50
+    win_rate: 38.0
+  period_end:
+    avg_pnl: -15.017829902476963
+    total_pnl: -180.21395882972357
+    trades: 12
+    win_rate: 16.666666666666664
+  regime_break:
+    avg_pnl: -6.039766373379087
+    total_pnl: -132.87486021433992
+    trades: 22
+    win_rate: 54.54545454545454
+  stop_loss_time:
+    avg_pnl: -53.02992702716657
+    total_pnl: -4242.394162173326
+    trades: 80
+    win_rate: 0.0
+by_sector:
+  EUROPE:
+    avg_pnl: -0.11919447339906708
+    total_pnl: -12.515419706902044
+    trades: 105
+    win_rate: 58.0952380952381
+  FINANCIALS:
+    avg_pnl: -10.052624589152417
+    total_pnl: -311.63136226372495
+    trades: 31
+    win_rate: 45.16129032258064
+  HEALTHCARE:
+    avg_pnl: -10.768741614920913
+    total_pnl: -635.3557552803338
+    trades: 59
+    win_rate: 47.45762711864407
+  US_BROAD:
+    avg_pnl: 16.058264016599615
+    total_pnl: 369.3400723817912
+    trades: 23
+    win_rate: 60.86956521739131
+  US_GROWTH:
+    avg_pnl: -3.052946540334138
+    total_pnl: -134.32964777470207
+    trades: 44
+    win_rate: 47.72727272727273
+  US_VALUE:
+    avg_pnl: -3.4150916917951077
+    total_pnl: -54.641467068721724
+    trades: 16
+    win_rate: 50.0
+losing_trades: 132
+max_drawdown: 1560.0259829987888
+profit_factor: !!python/object/apply:numpy._core.multiarray.scalar
+- !!python/object/apply:numpy.dtype
+  args:
+  - f8
+  - false
+  - true
+  state: !!python/tuple
+  - 3
+  - <
+  - null
+  - null
+  - null
+  - -1
+  - -1
+  - 0
+- !!binary |
+  57j6YDRL6z8=
+total_pnl: -779.1335797125931
+total_trades: 278
+win_rate: 52.51798561151079
+winning_trades: 146

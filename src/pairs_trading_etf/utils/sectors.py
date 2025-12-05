@@ -5,7 +5,7 @@ This module contains sector groupings for ETFs and helper functions
 to determine sector membership and same-sector pair validation.
 """
 
-from typing import Dict, Set, Tuple
+from typing import Dict, Set
 
 # =============================================================================
 # SECTOR DEFINITIONS
@@ -48,7 +48,7 @@ SECTOR_GROUPS: Dict[str, Set[str]] = {
 }
 
 # Sectors that historically perform poorly in pairs trading
-DEFAULT_EXCLUDED_SECTORS: Tuple[str, ...] = (
+DEFAULT_EXCLUDED_SECTORS: tuple[str, ...] = (
     'EMERGING',      # High volatility, regime changes
     'BONDS_GOV',     # Dominated by interest rate moves
     'US_GROWTH',     # Tech-heavy, regime changes
@@ -57,7 +57,7 @@ DEFAULT_EXCLUDED_SECTORS: Tuple[str, ...] = (
 )
 
 # Sectors that historically perform well in pairs trading
-RECOMMENDED_SECTORS: Tuple[str, ...] = (
+RECOMMENDED_SECTORS: tuple[str, ...] = (
     'EUROPE',        # Strong cointegration
     'FINANCIALS',    # Similar business models
     'US_BROAD',      # Index tracking
@@ -145,8 +145,8 @@ def get_all_tickers() -> Set[str]:
 
 def filter_by_sectors(
     pairs: list,
-    include_sectors: Tuple[str, ...] = None,
-    exclude_sectors: Tuple[str, ...] = None,
+    include_sectors: tuple[str, ...] = None,
+    exclude_sectors: tuple[str, ...] = None,
 ) -> list:
     """
     Filter pairs by sector inclusion/exclusion.

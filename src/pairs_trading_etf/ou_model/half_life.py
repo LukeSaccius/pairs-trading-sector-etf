@@ -44,7 +44,6 @@ Bug Fix History:
 from __future__ import annotations
 
 import logging
-from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -165,7 +164,7 @@ def estimate_half_life(spread: pd.Series, min_observations: int = 30) -> float |
 def estimate_half_life_with_stats(
     spread: pd.Series, 
     min_observations: int = 30
-) -> Tuple[float | None, dict]:
+) -> tuple[float | None, dict]:
     """Estimate half-life with additional statistics.
     
     Extended version that returns regression statistics for diagnostics.
@@ -179,7 +178,7 @@ def estimate_half_life_with_stats(
         
     Returns
     -------
-    Tuple[float | None, dict]
+    tuple[float | None, dict]
         - Half-life estimate (or None if invalid)
         - Dictionary with additional statistics:
             - intercept: OLS intercept

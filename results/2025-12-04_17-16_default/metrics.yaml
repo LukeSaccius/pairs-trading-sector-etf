@@ -1,0 +1,94 @@
+avg_holding_days: 9.567567567567568
+avg_loser: -32.986301037949126
+avg_pnl: -3.0315947331389608
+avg_winner: 35.21826100992634
+by_exit_reason:
+  convergence:
+    avg_pnl: 37.80836244968081
+    total_pnl: 1966.034847383402
+    trades: 52
+    win_rate: 96.15384615384616
+  max_holding:
+    avg_pnl: 1.641797249561366
+    total_pnl: 45.97032298771825
+    trades: 28
+    win_rate: 46.42857142857143
+  period_end:
+    avg_pnl: 4.420070129977098
+    total_pnl: 13.260210389931295
+    trades: 3
+    win_rate: 66.66666666666666
+  stop_loss:
+    avg_pnl: -38.06063694254796
+    total_pnl: -2473.9414012656175
+    trades: 65
+    win_rate: 0.0
+by_sector:
+  CONSUMER_DISC:
+    avg_pnl: -43.82553934579361
+    total_pnl: -131.47661803738083
+    trades: 3
+    win_rate: 0.0
+  EUROPE:
+    avg_pnl: -0.22662997323898304
+    total_pnl: -9.971718822515253
+    trades: 44
+    win_rate: 43.18181818181818
+  FINANCIALS:
+    avg_pnl: -6.850263516851411
+    total_pnl: -130.15500682017682
+    trades: 19
+    win_rate: 42.10526315789473
+  HEALTHCARE:
+    avg_pnl: -14.258123409115564
+    total_pnl: -228.12997454584902
+    trades: 16
+    win_rate: 43.75
+  REITS:
+    avg_pnl: -2.5687148933953985
+    total_pnl: -20.549719147163188
+    trades: 8
+    win_rate: 50.0
+  US_BROAD:
+    avg_pnl: 16.27715703946495
+    total_pnl: 211.60304151304433
+    trades: 13
+    win_rate: 38.46153846153847
+  US_GROWTH:
+    avg_pnl: -3.520683689001926
+    total_pnl: -123.22392911506742
+    trades: 35
+    win_rate: 48.57142857142857
+  US_SMALL:
+    avg_pnl: -1.5227178118600726
+    total_pnl: -12.18174249488058
+    trades: 8
+    win_rate: 50.0
+  US_VALUE:
+    avg_pnl: -2.2951765172886223
+    total_pnl: -4.5903530345772445
+    trades: 2
+    win_rate: 50.0
+losing_trades: 83
+max_drawdown: 871.9337425813186
+profit_factor: !!python/object/apply:numpy._core.multiarray.scalar
+- !!python/object/apply:numpy.dtype
+  args:
+  - f8
+  - false
+  - true
+  state: !!python/tuple
+  - 3
+  - <
+  - null
+  - null
+  - null
+  - -1
+  - -1
+  - 0
+- !!binary |
+  pTeqiILB6j8=
+total_pnl: -448.67602050456617
+total_trades: 148
+win_rate: 43.91891891891892
+winning_trades: 65

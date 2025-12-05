@@ -1,0 +1,99 @@
+avg_holding_days: 10.21860465116279
+avg_loser: -93.7800256569294
+avg_pnl: 10.477742757938705
+avg_winner: 97.80476245586243
+by_exit_reason:
+  convergence:
+    avg_pnl: 107.39574678806983
+    total_pnl: 9773.012957714354
+    trades: 91
+    win_rate: 95.6043956043956
+  max_holding:
+    avg_pnl: 14.772759545534946
+    total_pnl: 650.0014200035376
+    trades: 44
+    win_rate: 59.09090909090909
+  period_end:
+    avg_pnl: -23.60470250262162
+    total_pnl: -94.41881001048648
+    trades: 4
+    win_rate: 50.0
+  regime_break:
+    avg_pnl: -22.20549370390974
+    total_pnl: -66.61648111172923
+    trades: 3
+    win_rate: 66.66666666666666
+  stop_loss:
+    avg_pnl: -109.71595059779253
+    total_pnl: -8009.264393638855
+    trades: 73
+    win_rate: 0.0
+by_sector:
+  ASIA_DEV:
+    avg_pnl: -3.5923929464523323
+    total_pnl: -111.3641813400223
+    trades: 31
+    win_rate: 51.61290322580645
+  BONDS_CORP:
+    avg_pnl: -11.621109664659732
+    total_pnl: -185.93775463455572
+    trades: 16
+    win_rate: 31.25
+  COMMODITIES:
+    avg_pnl: -15.175000870638819
+    total_pnl: -257.9750148008599
+    trades: 17
+    win_rate: 41.17647058823529
+  CONSUMER_DISC:
+    avg_pnl: 11.25362770034702
+    total_pnl: 78.77539390242913
+    trades: 7
+    win_rate: 42.857142857142854
+  EUROPE:
+    avg_pnl: 33.427724454551175
+    total_pnl: 3041.922925364157
+    trades: 91
+    win_rate: 63.73626373626373
+  FINANCIALS:
+    avg_pnl: -14.16468307749634
+    total_pnl: -424.9404923248902
+    trades: 30
+    win_rate: 50.0
+  US_BROAD:
+    avg_pnl: -31.087657560710127
+    total_pnl: -404.13954828923164
+    trades: 13
+    win_rate: 38.46153846153847
+  US_SMALL:
+    avg_pnl: 78.49024675603549
+    total_pnl: 549.4317272922484
+    trades: 7
+    win_rate: 85.71428571428571
+  US_VALUE:
+    avg_pnl: -11.019454070817915
+    total_pnl: -33.058362212453744
+    trades: 3
+    win_rate: 66.66666666666666
+losing_trades: 98
+max_drawdown: 1768.178603611266
+profit_factor: !!python/object/apply:numpy._core.multiarray.scalar
+- !!python/object/apply:numpy.dtype
+  args:
+  - f8
+  - false
+  - true
+  state: !!python/tuple
+  - 3
+  - <
+  - null
+  - null
+  - null
+  - -1
+  - -1
+  - 0
+- !!binary |
+  xaiSov3r8z8=
+total_pnl: 2252.7146929568216
+total_trades: 215
+win_rate: 54.418604651162795
+winning_trades: 117

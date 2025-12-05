@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 import time
 from collections import defaultdict
-from typing import Optional, Tuple, Dict, List, Any
+from typing import Optional, Dict, List, Any
 
 import numpy as np
 import pandas as pd
@@ -1119,10 +1119,43 @@ def run_trading_simulation(
         spread = log_x - hr * log_y
         spreads[pair_names[pair]] = spread
     
-    # Rolling z-score
-    rolling_mean = spreads.rolling(window=cfg.zscore_lookback, min_periods=30).mean()
-    rolling_std = spreads.rolling(window=cfg.zscore_lookback, min_periods=30).std()
-    zscores = (spreads - rolling_mean) / rolling_std
+    # Rolling z-score with adaptive lookback per-pair (QMA compliance)
+    # If use_adaptive_lookback=True, each pair gets lookback = f(half_life)
+    use_adaptive = getattr(cfg, 'use_adaptive_lookback', False)
+    
+    if use_adaptive:
+        # Per-pair lookback based on half-life
+        mult = getattr(cfg, 'adaptive_lookback_multiplier', 4.0)
+        lb_min = getattr(cfg, 'adaptive_lookback_min', 30)
+        lb_max = getattr(cfg, 'adaptive_lookback_max', 120)
+        
+        rolling_mean = pd.DataFrame(index=prices.index)
+        rolling_std = pd.DataFrame(index=prices.index)
+        zscores = pd.DataFrame(index=prices.index)
+        pair_lookbacks = {}  # Store for reference
+        
+        for pair in pairs:
+            pair_name = pair_names[pair]
+            hl = half_lives[pair]
+            # Compute adaptive lookback: clamp(mult * hl, min, max)
+            lookback = int(max(lb_min, min(lb_max, mult * hl)))
+            pair_lookbacks[pair] = lookback
+            
+            # min_periods must be <= window
+            min_per = min(lookback, 30)
+            
+            spread_series = spreads[pair_name]
+            rolling_mean[pair_name] = spread_series.rolling(window=lookback, min_periods=min_per).mean()
+            rolling_std[pair_name] = spread_series.rolling(window=lookback, min_periods=min_per).std()
+            std_vals = rolling_std[pair_name]
+            zscores[pair_name] = (spread_series - rolling_mean[pair_name]) / std_vals.where(std_vals > 0, np.nan)
+        
+        logger.debug(f"Adaptive lookbacks: min={min(pair_lookbacks.values())}, max={max(pair_lookbacks.values())}")
+    else:
+        # Original: single lookback for all pairs
+        rolling_mean = spreads.rolling(window=cfg.zscore_lookback, min_periods=30).mean()
+        rolling_std = spreads.rolling(window=cfg.zscore_lookback, min_periods=30).std()
+        zscores = (spreads - rolling_mean) / rolling_std
     
     # Pre-compute Kalman hedge ratios if enabled
     kalman_results = {}
@@ -1162,9 +1195,10 @@ def run_trading_simulation(
                     log_y = np.log(prices[leg_y])
                     
                     # Compute spread with time-varying hedge ratio only (no intercept)
-                    # This is more similar to OLS spread and works better with rolling z-score
+                    # IMPORTANT: Use same convention as normal spread: log_x - hr * log_y
+                    # (Bug fix: was reversed as log_y - hr * log_x which inverted signals)
                     common_idx = spreads.index.intersection(kalman_df.index)
-                    new_spread = log_y.loc[common_idx] - kalman_hr.loc[common_idx] * log_x.loc[common_idx]
+                    new_spread = log_x.loc[common_idx] - kalman_hr.loc[common_idx] * log_y.loc[common_idx]
                     spreads.loc[common_idx, pair_name] = new_spread.values
             
             # Recalculate z-scores with Kalman-adjusted spreads
@@ -1207,9 +1241,21 @@ def run_trading_simulation(
                 except Exception:
                     pass
             
-            rolling_mean = spreads.rolling(window=cfg.zscore_lookback, min_periods=30).mean()
-            rolling_std = spreads.rolling(window=cfg.zscore_lookback, min_periods=30).std()
-            zscores = (spreads - rolling_mean) / rolling_std
+            # Recalculate rolling stats (respecting adaptive lookback setting)
+            if use_adaptive:
+                for pair in pairs:
+                    pair_name = pair_names[pair]
+                    lookback = pair_lookbacks[pair]
+                    min_per = min(lookback, 30)  # min_periods must be <= window
+                    spread_series = spreads[pair_name]
+                    rolling_mean[pair_name] = spread_series.rolling(window=lookback, min_periods=min_per).mean()
+                    rolling_std[pair_name] = spread_series.rolling(window=lookback, min_periods=min_per).std()
+                    std_vals = rolling_std[pair_name]
+                    zscores[pair_name] = (spread_series - rolling_mean[pair_name]) / std_vals.where(std_vals > 0, np.nan)
+            else:
+                rolling_mean = spreads.rolling(window=cfg.zscore_lookback, min_periods=30).mean()
+                rolling_std = spreads.rolling(window=cfg.zscore_lookback, min_periods=30).std()
+                zscores = (spreads - rolling_mean) / rolling_std
         
         # Check exits
         for pair in pairs:
@@ -1217,14 +1263,34 @@ def run_trading_simulation(
                 continue
             
             pair_name = pair_names[pair]
-            z = zscores.loc[current_date, pair_name]
-            spread = spreads.loc[current_date, pair_name]
+            direction = position_state[pair]
+            entry = entry_data[pair]
+            
+            # QMA Level 2: Complete fixed-parameter exit
+            # Use hr_entry, mu_entry, sigma_entry from entry time
+            # This prevents "Rolling Beta Trap" where exit uses different distribution
+            if getattr(cfg, 'use_fixed_exit_params', True):
+                # Recalculate spread using hr from entry time
+                leg_x, leg_y = pair
+                log_x = np.log(prices.loc[current_date, leg_x])
+                log_y = np.log(prices.loc[current_date, leg_y])
+                hr_entry = entry.get('hr', current_hr[pair])  # Use entry hr
+                spread = log_x - hr_entry * log_y
+                
+                # Use μ and σ from entry time for consistent exit evaluation
+                mu_entry = entry.get('mu_entry', rolling_mean.loc[current_date, pair_name])
+                sigma_entry = entry.get('sigma_entry', rolling_std.loc[current_date, pair_name])
+                if sigma_entry > 0:
+                    z = (spread - mu_entry) / sigma_entry
+                else:
+                    z = 0.0
+            else:
+                # Original behavior: use rolling z-score with rolling hr
+                spread = spreads.loc[current_date, pair_name]
+                z = zscores.loc[current_date, pair_name]
             
             if pd.isna(z):
                 continue
-            
-            direction = position_state[pair]
-            entry = entry_data[pair]
             
             should_exit = False
             exit_reason = None
@@ -1297,44 +1363,51 @@ def run_trading_simulation(
             
             # Check convergence and stop-loss
             if not should_exit:
+                # Get exit tolerance (Ch.8: exit if within tolerance band of exit threshold)
+                exit_tol = getattr(cfg, 'exit_tolerance_sigma', 0.1)
+                exit_thresh = getattr(cfg, 'exit_threshold_sigma', cfg.exit_zscore if hasattr(cfg, 'exit_zscore') else 0.0)
+                stop_sigma = getattr(cfg, 'stop_loss_sigma', cfg.stop_loss_zscore if hasattr(cfg, 'stop_loss_zscore') else 4.0)
+                
                 if direction == 1:  # Long spread
-                    if z >= -cfg.exit_zscore:
+                    # Exit if z >= -(exit_threshold + tolerance) i.e. within tolerance of mean
+                    if z >= -(exit_thresh + exit_tol):
                         should_exit = True
                         exit_reason = "convergence"
                     else:
                         # Check stop loss with optional time-based tightening
-                        use_time_stops = getattr(cfg, 'time_based_stops', False)
+                        use_time_stops = getattr(cfg, 'time_based_stops', True)  # Default True per Ch.8
                         if use_time_stops:
-                            tightening_rate = getattr(cfg, 'stop_tightening_rate', 0.1)
+                            tightening_rate = getattr(cfg, 'stop_tightening_rate', 0.15)
                             time_stop, effective_stop = calculate_time_based_stop(
                                 entry['z'], z, holding_days, hl,
-                                cfg.stop_loss_zscore, tightening_rate
+                                stop_sigma, tightening_rate
                             )
                             if time_stop:
                                 should_exit = True
                                 exit_reason = "stop_loss_time"
                         else:
-                            if z <= -cfg.stop_loss_zscore:
+                            if z <= -stop_sigma:
                                 should_exit = True
                                 exit_reason = "stop_loss"
                 else:  # Short spread
-                    if z <= cfg.exit_zscore:
+                    # Exit if z <= (exit_threshold + tolerance) i.e. within tolerance of mean
+                    if z <= (exit_thresh + exit_tol):
                         should_exit = True
                         exit_reason = "convergence"
                     else:
                         # Check stop loss with optional time-based tightening
-                        use_time_stops = getattr(cfg, 'time_based_stops', False)
+                        use_time_stops = getattr(cfg, 'time_based_stops', True)  # Default True per Ch.8
                         if use_time_stops:
-                            tightening_rate = getattr(cfg, 'stop_tightening_rate', 0.1)
+                            tightening_rate = getattr(cfg, 'stop_tightening_rate', 0.15)
                             time_stop, effective_stop = calculate_time_based_stop(
                                 entry['z'], z, holding_days, hl,
-                                cfg.stop_loss_zscore, tightening_rate
+                                stop_sigma, tightening_rate
                             )
                             if time_stop:
                                 should_exit = True
                                 exit_reason = "stop_loss_time"
                         else:
-                            if z >= cfg.stop_loss_zscore:
+                            if z >= stop_sigma:
                                 should_exit = True
                                 exit_reason = "stop_loss"
             
@@ -1435,11 +1508,12 @@ def run_trading_simulation(
                 
                 # Volatility-adjusted position sizing
                 if getattr(cfg, 'use_vol_sizing', False):
-                    # Calculate recent spread volatility
+                    # Calculate recent spread volatility using diff() not pct_change()
+                    # (Bug fix: spread oscillates around 0, pct_change gives extreme values)
                     spread_series = spreads[pair_name]
-                    spread_returns = spread_series.pct_change().dropna()
-                    if len(spread_returns) >= 20:
-                        spread_vol = spread_returns.iloc[-20:].std()
+                    spread_changes = spread_series.diff().dropna()
+                    if len(spread_changes) >= 20:
+                        spread_vol = spread_changes.iloc[-20:].std()
                         position_capital = calculate_volatility_adjusted_size(
                             position_capital,
                             spread_vol,
@@ -1451,7 +1525,10 @@ def run_trading_simulation(
                 notional_x = position_capital / (1 + abs(hr))
                 notional_y = abs(hr) * notional_x
                 
-                if z <= -cfg.entry_zscore:
+                # Get entry threshold (backwards compatible)
+                entry_thresh = getattr(cfg, 'entry_threshold_sigma', cfg.entry_zscore if hasattr(cfg, 'entry_zscore') else 0.75)
+                
+                if z <= -entry_thresh:
                     position_state[pair] = 1
                     entry_data[pair] = {
                         't': t,
@@ -1464,9 +1541,12 @@ def run_trading_simulation(
                         'qty_x': notional_x / px,
                         'qty_y': -notional_y / py,
                         'capital': current_capital,
+                        # QMA Level 2: Save μ and σ at entry for fixed exit z-score
+                        'mu_entry': rolling_mean.loc[current_date, pair_name],
+                        'sigma_entry': rolling_std.loc[current_date, pair_name],
                     }
                     n_active += 1
-                elif z >= cfg.entry_zscore:
+                elif z >= entry_thresh:
                     position_state[pair] = -1
                     entry_data[pair] = {
                         't': t,
@@ -1479,6 +1559,9 @@ def run_trading_simulation(
                         'qty_x': -notional_x / px,
                         'qty_y': notional_y / py,
                         'capital': current_capital,
+                        # QMA Level 2: Save μ and σ at entry for fixed exit z-score
+                        'mu_entry': rolling_mean.loc[current_date, pair_name],
+                        'sigma_entry': rolling_std.loc[current_date, pair_name],
                     }
                     n_active += 1
     
@@ -1495,8 +1578,23 @@ def run_trading_simulation(
         
         px = prices.loc[last_date, leg_x]
         py = prices.loc[last_date, leg_y]
-        z_val = zscores.loc[last_date, pair_name]
-        z = z_val if not pd.isna(z_val) else 0
+        
+        # QMA Level 2: Use fixed exit params (hr_entry, mu_entry, sigma_entry) for period_end z-score
+        if getattr(cfg, 'use_fixed_exit_params', True):
+            log_x = np.log(px)
+            log_y = np.log(py)
+            hr_entry = entry.get('hr', current_hr[pair])
+            spread = log_x - hr_entry * log_y
+            
+            mu_entry = entry.get('mu_entry', rolling_mean.loc[last_date, pair_name])
+            sigma_entry = entry.get('sigma_entry', rolling_std.loc[last_date, pair_name])
+            if sigma_entry > 0:
+                z = (spread - mu_entry) / sigma_entry
+            else:
+                z = 0.0
+        else:
+            z_val = zscores.loc[last_date, pair_name]
+            z = z_val if not pd.isna(z_val) else 0
         
         pnl_x = entry['qty_x'] * (px - entry['px'])
         pnl_y = entry['qty_y'] * (py - entry['py'])

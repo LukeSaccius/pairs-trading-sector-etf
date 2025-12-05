@@ -1,0 +1,519 @@
+# Global ETF Universe Configuration
+# Purpose: Expand pairs trading research to international ETFs
+# Updated: 2025-12-03
+#
+# DESIGN NOTES:
+# - All prices will be converted to USD to avoid look-ahead bias
+# - Only include ETFs traded on major exchanges with good liquidity
+# - Group by region for hierarchical pair filtering (reduces O(N²))
+# - Focus on country/regional ETFs that track local markets
+#
+# Estimated Universe Size: 400-600 ETFs
+# Estimated Pairs (same-region only): ~50,000 pairs vs 180,000 if cross-region
+
+data:
+  start_date: "2006-01-01"  # Extended history for more training data
+  end_date: "2025-12-01"
+  source: "yahoo"
+  frequency: "1d"
+  
+  # Currency settings
+  convert_to_usd: true
+  base_currency: "USD"
+  
+  # Download settings
+  batch_size: 50
+  sleep_between_batches: 1.0
+  max_retries: 3
+
+# Data quality thresholds
+data_quality:
+  min_history_days: 1260  # 5 years minimum
+  max_missing_pct: 0.10   # Max 10% missing
+  min_avg_volume: 100000  # Min 100k shares/day average
+
+# Output paths
+output:
+  prices_usd_path: "data/raw/global/global_etf_prices_usd.csv"
+  prices_local_path: "data/raw/global/global_etf_prices_local.csv"
+  fx_rates_path: "data/raw/global/fx_rates.csv"
+  metadata_path: "data/raw/global/global_etf_metadata.csv"
+
+# ============================================================================
+# GLOBAL ETF UNIVERSE BY REGION
+# ============================================================================
+
+universe:
+  default_list: "global_full"
+  
+  # Region definitions with currency info
+  regions:
+    US:
+      currency: "USD"
+      exchange: "NYSE/NASDAQ"
+      description: "US-domiciled ETFs tracking US markets"
+      
+    EUROPE:
+      currency: "EUR"
+      exchange: "Various (traded in USD on US exchanges)"
+      description: "European country and regional ETFs"
+      
+    UK:
+      currency: "GBP"
+      exchange: "LSE (but US-listed versions in USD)"
+      description: "UK-focused ETFs"
+      
+    JAPAN:
+      currency: "JPY"
+      exchange: "TSE (but US-listed versions in USD)"
+      description: "Japan-focused ETFs"
+      
+    ASIA_PACIFIC:
+      currency: "USD"
+      exchange: "Various (US-listed)"
+      description: "Asia-Pacific ex-Japan ETFs"
+      
+    EMERGING:
+      currency: "USD"
+      exchange: "Various (US-listed)"
+      description: "Emerging market ETFs"
+      
+    LATAM:
+      currency: "USD"
+      exchange: "Various (US-listed)"
+      description: "Latin American ETFs"
+      
+    GLOBAL:
+      currency: "USD"
+      exchange: "US"
+      description: "Global/multi-region ETFs"
+
+  # ETF categories within regions
+  categories:
+    # =========================================================================
+    # US REGION (~150 ETFs)
+    # =========================================================================
+    us_broad_market:
+      region: "US"
+      description: "Broad US equity indices"
+      etfs: [SPY, IVV, VOO, VTI, ITOT, SCHB, SPTM, IWB, VV]
+      
+    us_size:
+      region: "US"
+      description: "US size factor ETFs"
+      etfs: [
+        # Large cap
+        OEF, MGC, SCHX, VV, IWL, SPY, DIA,
+        # Mid cap
+        IJH, MDY, VO, IWR, SCHM, IVOO,
+        # Small cap
+        IJR, IWM, VB, SCHA, VIOO, SPSM
+      ]
+      
+    us_sectors:
+      region: "US"
+      description: "US sector ETFs (SPDRs and alternatives)"
+      etfs: [
+        # Technology
+        XLK, VGT, IYW, FTEC, IGV, SMH, SOXX, QQQ,
+        # Financials
+        XLF, VFH, IYF, KBE, KRE, IAI,
+        # Healthcare
+        XLV, VHT, IBB, XBI, IHI,
+        # Energy
+        XLE, VDE, IYE, XOP, OIH,
+        # Consumer Discretionary
+        XLY, VCR, IYC, XRT, XHB, ITB,
+        # Consumer Staples
+        XLP, VDC, IYK,
+        # Industrials
+        XLI, VIS, IYJ, ITA, XAR,
+        # Materials
+        XLB, VAW, IYM, XME,
+        # Utilities
+        XLU, VPU, IDU,
+        # Real Estate
+        XLRE, VNQ, IYR, RWR, SCHH,
+        # Communications
+        XLC, VOX, IYZ
+      ]
+      
+    us_factors:
+      region: "US"
+      description: "US factor/smart beta ETFs"
+      etfs: [
+        # Value
+        VTV, IVE, SPYV, IWD, SCHV, RPV, VLUE,
+        # Growth
+        VUG, IVW, SPYG, IWF, SCHG, RPG, VONG,
+        # Momentum
+        MTUM, PDP, DWAS,
+        # Quality
+        QUAL, SPHQ, FQAL,
+        # Low Volatility
+        SPLV, USMV, SPHD, LVHD,
+        # Dividend
+        VYM, DVY, SCHD, SDY, HDV, VIG, DGRO,
+        # Small Value
+        VBR, IWN, SLYV,
+        # Small Growth
+        VBK, IWO, SLYG
+      ]
+      
+    us_fixed_income:
+      region: "US"
+      description: "US fixed income ETFs"
+      etfs: [
+        # Treasury
+        TLT, IEF, IEI, SHY, GOVT, SCHO, SCHR, SPTL,
+        # Aggregate
+        AGG, BND, SCHZ,
+        # Corporate
+        LQD, VCIT, VCSH, IGIB,
+        # High Yield
+        HYG, JNK, SJNK, USHY,
+        # TIPS
+        TIP, SCHP, VTIP,
+        # Munis
+        MUB, VTEB, ITM,
+        # Floating
+        FLOT, FLRN
+      ]
+      
+    # =========================================================================
+    # EUROPE REGION (~60 ETFs)
+    # =========================================================================
+    europe_broad:
+      region: "EUROPE"
+      description: "Broad European equity ETFs"
+      etfs: [
+        VGK, FEZ, EZU, IEV, IEUR, HEDJ,
+        BBEU, SPEU
+      ]
+      
+    europe_countries:
+      region: "EUROPE"
+      description: "European country ETFs"
+      etfs: [
+        # Germany
+        EWG, HEWG, DAX,
+        # France
+        EWQ,
+        # Italy
+        EWI,
+        # Spain
+        EWP,
+        # Netherlands
+        EWN,
+        # Belgium
+        EWK,
+        # Switzerland
+        EWL, HEWL,
+        # Austria
+        EWO,
+        # Sweden
+        EWD,
+        # Norway
+        NORW, ENOR,
+        # Finland
+        EFNL,
+        # Ireland
+        EIRL,
+        # Poland
+        EPOL,
+        # Greece
+        GREK
+      ]
+      
+    europe_sectors:
+      region: "EUROPE"
+      description: "European sector ETFs"
+      etfs: [
+        # Financials
+        EUFN,
+        # Healthcare
+        IXJ,
+        # Real Estate
+        IFEU,
+        # Technology
+        IQQH
+      ]
+      
+    # =========================================================================
+    # UK REGION (~15 ETFs)
+    # =========================================================================
+    uk_etfs:
+      region: "UK"
+      description: "UK-focused ETFs"
+      etfs: [
+        EWU, FKU, HEWU, FLGB, EWUS
+      ]
+      
+    # =========================================================================
+    # JAPAN REGION (~20 ETFs)
+    # =========================================================================
+    japan_broad:
+      region: "JAPAN"
+      description: "Japan equity ETFs"
+      etfs: [
+        EWJ, DXJ, HEWJ, BBJP, JPXN, SCJ, FLJP,
+        DBJP, JPN
+      ]
+      
+    japan_small:
+      region: "JAPAN"
+      description: "Japan small cap ETFs"
+      etfs: [SCJ, DFSJ, EWJS]
+      
+    # =========================================================================
+    # ASIA-PACIFIC REGION (~40 ETFs)
+    # =========================================================================
+    asia_pacific_broad:
+      region: "ASIA_PACIFIC"
+      description: "Broad Asia-Pacific ETFs"
+      etfs: [
+        VPL, EPP, AAXJ, GMF, PAF, IPAC
+      ]
+      
+    asia_countries:
+      region: "ASIA_PACIFIC"
+      description: "Asia-Pacific country ETFs"
+      etfs: [
+        # Australia
+        EWA, FLAU, KROO,
+        # Hong Kong
+        EWH,
+        # Singapore
+        EWS,
+        # South Korea
+        EWY, FLKR,
+        # Taiwan
+        EWT,
+        # New Zealand
+        ENZL,
+        # Indonesia
+        EIDO,
+        # Malaysia
+        EWM,
+        # Thailand
+        THD,
+        # Philippines
+        EPHE,
+        # Vietnam
+        VNM
+      ]
+      
+    china_etfs:
+      region: "ASIA_PACIFIC"
+      description: "China-focused ETFs"
+      etfs: [
+        FXI, MCHI, GXC, KWEB, CQQQ, ASHR, CNYA,
+        KBA, PGJ, CHIQ, CNXT, CHAU
+      ]
+      
+    india_etfs:
+      region: "ASIA_PACIFIC"
+      description: "India-focused ETFs"
+      etfs: [
+        INDA, EPI, INDY, SMIN, PIN, NFTY
+      ]
+      
+    # =========================================================================
+    # EMERGING MARKETS REGION (~40 ETFs)
+    # =========================================================================
+    emerging_broad:
+      region: "EMERGING"
+      description: "Broad emerging market ETFs"
+      etfs: [
+        EEM, VWO, IEMG, SCHE, SPEM, ESGE, DFEM,
+        XSOE, EEMV, EEMS
+      ]
+      
+    emerging_asia:
+      region: "EMERGING"
+      description: "EM Asia focused"
+      etfs: [GMF, EEMA]
+      
+    emerging_europe:
+      region: "EMERGING"
+      description: "EM Europe/EMEA focused"
+      etfs: [
+        # Russia (may be delisted)
+        # Turkey
+        TUR,
+        # South Africa
+        EZA,
+        # Middle East
+        UAE, KSA, GULF, QAT
+      ]
+      
+    # =========================================================================
+    # LATIN AMERICA REGION (~20 ETFs)
+    # =========================================================================
+    latam_broad:
+      region: "LATAM"
+      description: "Broad Latin America ETFs"
+      etfs: [ILF, FLLA]
+      
+    latam_countries:
+      region: "LATAM"
+      description: "Latin American country ETFs"
+      etfs: [
+        # Brazil
+        EWZ, EWZS, FLBR, BRF,
+        # Mexico
+        EWW,
+        # Chile
+        ECH,
+        # Colombia
+        ICOL, GXG,
+        # Peru
+        EPU,
+        # Argentina
+        ARGT
+      ]
+      
+    # =========================================================================
+    # GLOBAL/MULTI-REGION (~30 ETFs)
+    # =========================================================================
+    global_broad:
+      region: "GLOBAL"
+      description: "Global equity ETFs"
+      etfs: [
+        VT, ACWI, URTH, IOO, SPDW, VXUS, IXUS, CWI,
+        VSGX, VSS, SCZ, GWL
+      ]
+      
+    global_developed:
+      region: "GLOBAL"
+      description: "Developed markets ex-US"
+      etfs: [
+        EFA, VEA, IEFA, SCHF, SPDW, IDEV, DFAX
+      ]
+      
+    global_sectors:
+      region: "GLOBAL"
+      description: "Global sector ETFs"
+      etfs: [
+        # Technology
+        IXN,
+        # Financials
+        IXG,
+        # Healthcare
+        IXJ,
+        # Energy
+        IXC,
+        # Industrials
+        EXI,
+        # Materials
+        MXI,
+        # Utilities
+        JXI,
+        # Infrastructure
+        IGF, IFRA
+      ]
+      
+    # =========================================================================
+    # COMMODITIES (Added for diversification analysis)
+    # =========================================================================
+    commodities:
+      region: "GLOBAL"
+      description: "Commodity ETFs"
+      etfs: [
+        GLD, IAU, SLV, PPLT, PALL,
+        DBC, PDBC, DBA, DBO, USO, UNG,
+        GDX, GDXJ, SIL, COPX, MOO
+      ]
+      
+    # =========================================================================
+    # FIXED INCOME - INTERNATIONAL
+    # =========================================================================
+    fixed_income_intl:
+      region: "GLOBAL"
+      description: "International fixed income"
+      etfs: [
+        BNDX, VWOB, EMB, PCY, BWX, IGOV,
+        IAGG, FLIA
+      ]
+
+  # =========================================================================
+  # LIST DEFINITIONS (for easy use)
+  # =========================================================================
+  lists:
+    global_full:
+      description: "Full global universe (~400+ ETFs)"
+      allow_cross_region: false  # Only pair within same region
+      categories: [
+        us_broad_market, us_size, us_sectors, us_factors, us_fixed_income,
+        europe_broad, europe_countries, europe_sectors,
+        uk_etfs,
+        japan_broad, japan_small,
+        asia_pacific_broad, asia_countries, china_etfs, india_etfs,
+        emerging_broad, emerging_asia, emerging_europe,
+        latam_broad, latam_countries,
+        global_broad, global_developed, global_sectors,
+        commodities, fixed_income_intl
+      ]
+      
+    us_only:
+      description: "US ETFs only (~150 ETFs)"
+      allow_cross_region: true
+      categories: [us_broad_market, us_size, us_sectors, us_factors, us_fixed_income]
+      
+    developed_markets:
+      description: "Developed markets (US, Europe, Japan, Australia)"
+      allow_cross_region: false
+      categories: [
+        us_broad_market, us_sectors, us_factors,
+        europe_broad, europe_countries, uk_etfs,
+        japan_broad, asia_pacific_broad
+      ]
+      
+    emerging_only:
+      description: "Emerging markets only"
+      allow_cross_region: true
+      categories: [
+        china_etfs, india_etfs, emerging_broad, emerging_asia, emerging_europe,
+        latam_broad, latam_countries
+      ]
+      
+    country_etfs:
+      description: "Country-specific ETFs (best for pairs trading)"
+      allow_cross_region: false
+      categories: [
+        europe_countries, uk_etfs, japan_broad,
+        asia_countries, china_etfs, india_etfs,
+        latam_countries, emerging_europe
+      ]
+
+# ============================================================================
+# PAIR SCANNING CONFIGURATION
+# ============================================================================
+
+pair_scan:
+  # Pre-filtering (before O(N²) enumeration)
+  correlation:
+    min_corr: 0.60
+    max_corr: 0.99
+    
+  # Cointegration thresholds
+  cointegration:
+    pvalue_threshold: 0.10
+    min_half_life: 5
+    max_half_life: 60  # Tighter for global pairs
+    
+  # Region-based pair filtering
+  region_filtering:
+    enabled: true
+    allow_cross_region: false  # Only pair within same region (default)
+    cross_region_exceptions: []  # Can add specific cross-region pairs
+    
+  # Execution
+  parallel_workers: 8
+  batch_size: 1000  # Process pairs in batches
+  
+  # Minimum pairs per region to include in results
+  min_pairs_per_region: 5
+
+metadata:
+  etf_info_path: "configs/global_etf_metadata.yaml"

@@ -1,0 +1,8 @@
+best_config: ez2.5_xz0.3_mp8_hl20_vs0.3
+deflated_sharpe: 5.371042277702708
+is_overfit: true
+n_configs_tested: 48
+pbo: 0.5571428571428572
+recommendation: "\u274C HIGH overfitting risk - DO NOT deploy"
+test_pnl: null
+test_sharpe: null

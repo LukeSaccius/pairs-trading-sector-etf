@@ -1,0 +1,98 @@
+# ============================================================================
+# Practical Vidyamurthy Configuration
+# Theory from Ch.5-8 with empirically-tuned thresholds
+# ============================================================================
+# The theoretical 0.75σ entry works for white noise but not for real OU spreads
+# with transaction costs. This config uses 2.0σ which performs better empirically.
+
+experiment_name: vidyamurthy_practical
+description: "Vidyamurthy framework with practical thresholds"
+
+# ============================================================================
+# CH.5/6: FORMATION & PAIR SELECTION
+# ============================================================================
+formation_days: 252
+trading_days: 252
+pvalue_threshold: 0.01         # 99% confidence [Engle:Granger:1987]
+use_log_prices: true           # REQUIRED [Vidyamurthy:Ch.5:p75]
+
+# Half-Life Bounds (user preference - NOT specified by Vidyamurthy)
+min_half_life: 5.0
+max_half_life: 30.0
+
+# Correlation Filter [Vidyamurthy:Ch.6:p90-97]
+min_correlation: 0.75
+max_correlation: 0.95
+
+# Pair Selection
+top_pairs: 20
+max_pairs_per_sector: 5
+max_pairs_per_etf: 2
+min_spread_range_pct: 0.02
+
+# Sector Focus [Vidyamurthy:Ch.6:p87]
+sector_focus: true
+exclude_sectors:
+  - BONDS_GOV
+  - BONDS_CORP
+  - COMMODITIES
+  - EMERGING
+
+rolling_consistency: false
+n_rolling_windows: 4
+min_passing_windows: 2
+
+# ============================================================================
+# PRACTICAL THRESHOLDS (Empirically Tuned)
+# ============================================================================
+# Vidyamurthy's 0.75σ is theoretical for white noise
+# For real spreads with transaction costs, 2.0σ works better
+entry_threshold_sigma: 2.0     # Empirically optimal for ETF pairs
+exit_threshold_sigma: 0.5      # Exit before mean to capture profit
+exit_tolerance_sigma: 0.0      # No tolerance band
+stop_loss_sigma: 4.0           # Wide stop
+
+# ============================================================================
+# CH.7/8: TRADABILITY & EXITS
+# ============================================================================
+use_bootstrap_holding_period: true
+bootstrap_n_samples: 1000
+
+use_adaptive_lookback: true
+adaptive_lookback_multiplier: 4.0
+adaptive_lookback_min: 20
+adaptive_lookback_max: 120
+
+use_fixed_exit_params: true    # [Vidyamurthy:Ch.8:p130-135]
+
+# Time-based stops disabled - causes too many early exits with 0.75σ
+time_based_stops: false
+stop_tightening_rate: 0.15
+max_holding_days: 60
+dynamic_max_holding: true
+max_holding_multiplier: 3.0
+
+# ============================================================================
+# PORTFOLIO [Vidyamurthy:Ch.5:p82-83]
+# ============================================================================
+max_positions: 10
+compounding: true
+leverage: 1.0
+dynamic_hedge: true
+hedge_update_days: 63
+
+transaction_cost_bps: 5.0
+
+blacklist_stoploss_rate: 0.30
+blacklist_min_trades: 3
+
+# Output
+output_dir: results
+save_trades: true
+save_summary: true
+save_config_snapshot: true
+timestamped_output: true
+
+# Data Paths
+price_data_path: data/raw/etf_prices_fresh.csv
+etf_metadata_path: configs/etf_metadata.yaml

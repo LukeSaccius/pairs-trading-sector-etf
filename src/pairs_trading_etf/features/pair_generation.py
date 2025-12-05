@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass
-from typing import Mapping, Sequence
+from typing import Mapping
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy as np
