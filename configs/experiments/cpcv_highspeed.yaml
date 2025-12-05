@@ -1,0 +1,70 @@
+# ============================================================================
+# CPCV High-Speed Mean Reversion
+# ============================================================================
+experiment_name: cpcv_highspeed
+description: "Targets fast half-life spreads for CSCV stress tests"
+
+formation_days: 252
+trading_days: 252
+pvalue_threshold: 0.03
+use_log_prices: true
+min_half_life: 3.0
+max_half_life: 15.0
+
+min_correlation: 0.80
+max_correlation: 0.97
+min_spread_range_pct: 0.025
+
+use_optimal_entry_threshold: false
+entry_threshold_sigma: 1.5
+exit_threshold_sigma: 0.4
+exit_tolerance_sigma: 0.05
+stop_loss_sigma: 3.2
+
+use_bootstrap_holding_period: true
+bootstrap_n_samples: 1000
+
+use_adaptive_lookback: true
+adaptive_lookback_multiplier: 3.5
+adaptive_lookback_min: 25
+adaptive_lookback_max: 80
+
+use_fixed_exit_params: true
+time_based_stops: true
+stop_tightening_rate: 0.20
+max_holding_days: 45
+dynamic_max_holding: true
+max_holding_multiplier: 2.0
+max_dynamic_holding_days: 0
+
+max_positions: 12
+min_pairs_for_trading: 2
+compounding: true
+leverage: 1.8
+dynamic_hedge: true
+hedge_ratio_method: kalman
+hedge_update_days: 63
+
+transaction_cost_bps: 15.0
+min_snr: 1.0
+min_zero_crossing_rate: 6.0
+use_adaptive_stop_loss: true
+
+sector_focus: true
+exclude_sectors:
+  - BONDS_GOV
+  - BONDS_CORP
+  - COMMODITIES
+  - EMERGING
+
+blacklist_stoploss_rate: 0.35
+blacklist_min_trades: 4
+
+output_dir: results
+save_trades: true
+save_summary: true
+save_config_snapshot: true
+timestamped_output: true
+
+price_data_path: data/raw/etf_prices_fresh.csv
+etf_metadata_path: configs/etf_metadata.yaml

@@ -1,0 +1,98 @@
+# ============================================================================
+# v18_lit_quality.yaml
+# Purpose: Literature-compliant baseline with quality gates for ETF pairs
+#
+# Sources:
+#   - Vidyamurthy (2006) Ch.5-8 for framework
+#   - Gatev et al. (2006) for realistic transaction costs (~70 bps round trip)
+#   - Bailey et al. (2016) for validation discipline
+#   - User request: enforce min zero-crossing rate and SNR filters
+# ============================================================================
+
+experiment_name: v18_lit_quality
+description: "Vidyamurthy framework w/ Gatev costs + SNR/ZCR quality filters"
+
+# Formation / Trading windows (1y formation, 1y trading)
+formation_days: 252
+trading_days: 252
+
+# Cointegration + correlation filters
+pvalue_threshold: 0.05         # allow 95% candidates, quality gates trim noise
+use_log_prices: true
+min_half_life: 5.0
+max_half_life: 30.0
+min_correlation: 0.75
+max_correlation: 0.95
+min_spread_range_pct: 0.03
+
+# Quality gates requested by user
+min_zero_crossing_rate: 5.0    # avoid stagnant spreads (>=5 crossings/year)
+min_snr: 1.5                   # Vidya Ch.7 guidance on tradability
+
+# Pair selection diversification
+top_pairs: 20
+max_pairs_per_sector: 4
+max_pairs_per_etf: 2
+sector_focus: true
+exclude_sectors:
+  - BONDS_GOV
+  - BONDS_CORP
+  - COMMODITIES
+  - EMERGING
+
+# Rolling consistency optional (still disabled for speed)
+rolling_consistency: false
+n_rolling_windows: 4
+min_passing_windows: 2
+
+# Trading thresholds (practical tweak vs theoretical 0.75σ)
+entry_threshold_sigma: 1.8     # empirical sweet spot for ETF spreads
+exit_threshold_sigma: 0.5
+exit_tolerance_sigma: 0.05
+stop_loss_sigma: 3.5
+# use_optimal_entry_threshold: true     # uncomment to auto-compute from transaction costs
+
+# Adaptive normalization + fixed exit params
+use_bootstrap_holding_period: true
+bootstrap_n_samples: 1000
+use_adaptive_lookback: true
+adaptive_lookback_multiplier: 4.0
+adaptive_lookback_min: 30
+adaptive_lookback_max: 120
+use_fixed_exit_params: true
+
+# Time-based stops (will be refined in Phase 2)
+time_based_stops: true
+stop_tightening_rate: 0.15
+max_holding_days: 60
+dynamic_max_holding: true
+max_holding_multiplier: 3.0
+max_dynamic_holding_days: 0     # 0 = uncapped dynamic hold per HL
+
+# Portfolio / capital rules
+max_positions: 8
+min_pairs_for_trading: 1
+compounding: true
+leverage: 1.5
+dynamic_hedge: true
+hedge_ratio_method: rolling
+hedge_update_days: 63
+
+# Adaptive HL-based stop loss enabled
+use_adaptive_stop_loss: true
+
+# Default ETF transaction costs ~10 bps (override if you want stress scenarios)
+transaction_cost_bps: 10.0
+
+# Blacklist behaviour
+blacklist_stoploss_rate: 0.30
+blacklist_min_trades: 3
+
+# Output & paths
+output_dir: results
+save_trades: true
+save_summary: true
+save_config_snapshot: true
+timestamped_output: true
+price_data_path: data/raw/etf_prices_fresh.csv
+etf_metadata_path: configs/etf_metadata.yaml

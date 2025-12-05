@@ -8,28 +8,23 @@ Usage:
     python run_cv_backtest.py
 """
 
+import logging
 import sys
 from pathlib import Path
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-import logging
 import pandas as pd
-import numpy as np
 
-from src.pairs_trading_etf.backtests.config import BacktestConfig
-from src.pairs_trading_etf.backtests.cross_validation import (
-    BacktestSplit,
-    CVResult,
-    run_cross_validated_backtest,
-    evaluate_on_test_set,
-    select_best_config,
-    print_cv_summary,
-    save_cv_results,
-)
-from src.pairs_trading_etf.backtests.engine import run_walkforward_backtest
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_PATH = PROJECT_ROOT / "src"
+try:
+    from pairs_trading_etf.backtests.config import BacktestConfig
+    from pairs_trading_etf.backtests.cross_validation import BacktestSplit
+    from pairs_trading_etf.backtests.engine import run_walkforward_backtest
+except ModuleNotFoundError:  # pragma: no cover
+    sys.path.append(str(SRC_PATH))
+    from pairs_trading_etf.backtests.config import BacktestConfig  # type: ignore[no-redef]
+    from pairs_trading_etf.backtests.cross_validation import BacktestSplit  # type: ignore[no-redef]
+    from pairs_trading_etf.backtests.engine import run_walkforward_backtest  # type: ignore[no-redef]
 
 # Configure logging
 logging.basicConfig(
@@ -111,19 +106,19 @@ def run_full_cv_pipeline():
         test_end="2024-12-31",
     )
     
-    print(f"\nData Split:")
+    print("\nData Split:")
     print(f"  TRAIN: {split.train_start} to {split.train_end} (parameter exploration)")
     print(f"  VALIDATION: {split.val_start} to {split.val_end} (config selection)")
     print(f"  TEST: {split.test_start} to {split.test_end} (final unbiased evaluation)")
     
     # 2. Load data
-    data_path = project_root / "data" / "raw" / "etf_prices_fresh.csv"
+    data_path = PROJECT_ROOT / "data" / "raw" / "etf_prices_fresh.csv"
     prices = load_prices(str(data_path))
     
     # 3. Create V17a config
     config = create_v17a_config()
     
-    print(f"\nConfiguration: V17a with rolling consistency")
+    print("\nConfiguration: V17a with rolling consistency")
     print(f"  entry_zscore: {config.entry_zscore}")
     print(f"  vol_size_min: {config.vol_size_min}")
     print(f"  rolling_consistency: {config.rolling_consistency}")
@@ -153,7 +148,7 @@ def run_full_cv_pipeline():
                 'total_trades': len(all_trades),
                 'win_rate': wins / len(all_trades) if len(all_trades) > 0 else 0,
             }
-            print(f"\nTrain Results:")
+            print("\nTrain Results:")
             print(f"  Total PnL: ${total_pnl:,.0f}")
             print(f"  Total Trades: {len(all_trades)}")
             print(f"  Win Rate: {wins}/{len(all_trades)} = {train_summary['win_rate']*100:.1f}%")
@@ -183,7 +178,7 @@ def run_full_cv_pipeline():
                 'total_trades': len(all_trades),
                 'win_rate': wins / len(all_trades) if len(all_trades) > 0 else 0,
             }
-            print(f"\nValidation Results:")
+            print("\nValidation Results:")
             print(f"  Total PnL: ${total_pnl:,.0f}")
             print(f"  Total Trades: {len(all_trades)}")
             print(f"  Win Rate: {wins}/{len(all_trades)} = {val_summary['win_rate']*100:.1f}%")
@@ -249,7 +244,7 @@ def run_full_cv_pipeline():
     print(f"{'TEST':<15} ${test_m['total_pnl']:>10,.0f} {test_m['win_rate']*100:>9.1f}% {test_m['total_trades']:>8}")
     
     # Save results
-    output_dir = project_root / "results" / "experiments" / "cross_validation"
+    output_dir = PROJECT_ROOT / "results" / "experiments" / "cross_validation"
     output_dir.mkdir(parents=True, exist_ok=True)
     
     results_df = pd.DataFrame([

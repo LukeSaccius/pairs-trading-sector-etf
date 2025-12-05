@@ -15,12 +15,14 @@ References:
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Any
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Dict, Optional, Tuple, Any, List
 
 import numpy as np
 import pandas as pd
 from scipy import stats
+
+from .cpcv_correct import WalkForwardCPCV
 
 if TYPE_CHECKING:
     from .config import BacktestConfig
@@ -119,12 +121,13 @@ def validate_pair_stability(
         return {'stable': False, 'reason': 'validation_failed'}
     
     # Check stability metrics
-    # Guard against division by zero
-    if train_result['half_life'] == 0 or train_result['hedge_ratio'] == 0:
+    # Guard against division by zero and near-zero values (epsilon = 1e-8)
+    EPSILON = 1e-8
+    if abs(train_result['half_life']) < EPSILON or abs(train_result['hedge_ratio']) < EPSILON:
         return {'stable': False, 'reason': 'zero_train_values'}
-    
-    hl_ratio = val_result['half_life'] / train_result['half_life']
-    hr_ratio = abs(val_result['hedge_ratio'] / train_result['hedge_ratio'])
+
+    hl_ratio = val_result['half_life'] / max(abs(train_result['half_life']), EPSILON)
+    hr_ratio = abs(val_result['hedge_ratio']) / max(abs(train_result['hedge_ratio']), EPSILON)
     
     # Stability thresholds
     hl_stable = 0.5 <= hl_ratio <= 2.0
@@ -258,9 +261,10 @@ def check_rolling_consistency(
     if len(hl_values) >= 2:
         hl_mean = np.mean(hl_values)
         hr_mean = np.mean(hr_values)
-        # Guard against division by zero
-        hl_cv = np.std(hl_values) / hl_mean if hl_mean != 0 else 1.0
-        hr_cv = np.std(hr_values) / abs(hr_mean) if hr_mean != 0 else 1.0
+        # Guard against division by zero and near-zero values
+        EPSILON = 1e-8
+        hl_cv = np.std(hl_values) / max(abs(hl_mean), EPSILON) if abs(hl_mean) > EPSILON else 1.0
+        hr_cv = np.std(hr_values) / max(abs(hr_mean), EPSILON) if abs(hr_mean) > EPSILON else 1.0
         score = max(0, 1.0 - (hl_cv + hr_cv) / 2)
     else:
         score = 0.0 if not passes else 0.5
@@ -572,3 +576,158 @@ def calculate_safe_vol_sizing(
     scale = max(min_scale, min(max_scale, scale))
     
     return base_capital * scale, scale
+
+
+# =============================================================================
+# PURGED WALK-FORWARD VALIDATOR
+# =============================================================================
+
+
+@dataclass
+class WalkForwardSplitResult:
+    """Per-split walk-forward metrics."""
+
+    train_year: int
+    test_year: int
+    train_return: float
+    test_return: float
+    train_days: int
+    test_days: int
+    positive: bool
+
+
+@dataclass
+class WalkForwardValidationResult:
+    """Aggregate walk-forward validation output."""
+
+    splits: List[WalkForwardSplitResult]
+    avg_is_return: float
+    avg_oos_return: float
+    positive_ratio: float
+    purge_days: int
+    embargo_days: int
+    min_positive_ratio: float
+    min_avg_oos_return: float
+    passed: bool
+    warnings: List[str] = field(default_factory=list)
+
+    def summary(self) -> str:
+        """Human-readable summary."""
+        lines = [
+            "PURGED WALK-FORWARD VALIDATION",
+            f"  Splits analyzed: {len(self.splits)}",
+            f"  Purge / Embargo: {self.purge_days}d / {self.embargo_days}d",
+            f"  Avg IS return: {self.avg_is_return:.4%}",
+            f"  Avg OOS return: {self.avg_oos_return:.4%}",
+            f"  Positive OOS splits: {self.positive_ratio:.1%}",
+            f"  Minimum positive ratio: {self.min_positive_ratio:.1%}",
+            f"  Minimum avg OOS return: {self.min_avg_oos_return:.4%}",
+            f"  Passed: {'YES' if self.passed else 'NO'}",
+        ]
+
+        if self.warnings:
+            lines.append("  Warnings:")
+            for warn in self.warnings:
+                lines.append(f"    - {warn}")
+
+        return "\n".join(lines)
+
+
+class PurgedWalkForwardValidator:
+    """Optional validator that reports purged walk-forward health."""
+
+    def __init__(
+        self,
+        train_years: int = 1,
+        test_years: int = 1,
+        min_positive_ratio: float = 0.55,
+        min_avg_oos_return: float = 0.0,
+        default_purge_days: int = 21,
+        default_embargo_days: int = 5,
+    ) -> None:
+        self.train_years = train_years
+        self.test_years = test_years
+        self.min_positive_ratio = min_positive_ratio
+        self.min_avg_oos_return = min_avg_oos_return
+        self.default_purge_days = default_purge_days
+        self.default_embargo_days = default_embargo_days
+
+    def evaluate(
+        self,
+        returns_series: np.ndarray,
+        dates: pd.DatetimeIndex,
+        purge_days: Optional[int] = None,
+        embargo_days: Optional[int] = None,
+    ) -> WalkForwardValidationResult:
+        """Run purged walk-forward validation on daily returns."""
+        if len(dates) == 0 or len(returns_series) == 0:
+            raise ValueError("No data available for walk-forward validation")
+
+        if len(returns_series) != len(dates):
+            raise ValueError("Returns series and dates must have the same length")
+
+        purge = int(purge_days) if purge_days else self.default_purge_days
+        embargo = int(embargo_days) if embargo_days else self.default_embargo_days
+
+        wf = WalkForwardCPCV(
+            train_years=self.train_years,
+            test_years=self.test_years,
+            purge_days=purge,
+            embargo_days=embargo,
+        )
+
+        splits = wf.generate_splits(dates)
+        if not splits:
+            raise ValueError("Not enough history for walk-forward validation")
+
+        returns = np.asarray(returns_series, dtype=float)
+        split_results: List[WalkForwardSplitResult] = []
+        positive_count = 0
+
+        for train_mask, test_mask, train_year, test_year in splits:
+            train_ret = float(returns[train_mask].sum())
+            test_ret = float(returns[test_mask].sum())
+            positive = test_ret > 0
+            if positive:
+                positive_count += 1
+
+            split_results.append(
+                WalkForwardSplitResult(
+                    train_year=train_year,
+                    test_year=test_year,
+                    train_return=train_ret,
+                    test_return=test_ret,
+                    train_days=int(train_mask.sum()),
+                    test_days=int(test_mask.sum()),
+                    positive=positive,
+                )
+            )
+
+        avg_is = float(np.mean([s.train_return for s in split_results]))
+        avg_oos = float(np.mean([s.test_return for s in split_results]))
+        positive_ratio = positive_count / len(split_results)
+
+        warnings: List[str] = []
+        if positive_ratio < self.min_positive_ratio:
+            warnings.append(
+                f"OOS positive ratio {positive_ratio:.1%} < {self.min_positive_ratio:.1%}"
+            )
+        if avg_oos < self.min_avg_oos_return:
+            warnings.append(
+                f"Average OOS return {avg_oos:.4%} < {self.min_avg_oos_return:.4%}"
+            )
+
+        passed = positive_ratio >= self.min_positive_ratio and avg_oos >= self.min_avg_oos_return
+
+        return WalkForwardValidationResult(
+            splits=split_results,
+            avg_is_return=avg_is,
+            avg_oos_return=avg_oos,
+            positive_ratio=positive_ratio,
+            purge_days=purge,
+            embargo_days=embargo,
+            min_positive_ratio=self.min_positive_ratio,
+            min_avg_oos_return=self.min_avg_oos_return,
+            passed=passed,
+            warnings=warnings,
+        )

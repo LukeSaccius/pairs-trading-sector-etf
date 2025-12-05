@@ -16,7 +16,7 @@ References:
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
@@ -24,9 +24,7 @@ import numpy as np
 import pandas as pd
 
 from pairs_trading_etf.cointegration.engle_granger import run_engle_granger
-from pairs_trading_etf.ou_model.estimation import estimate_ou_parameters
-from pairs_trading_etf.data.loader import PriceFrame, build_price_frame
-from pairs_trading_etf.data.universe import ETFUniverse, load_configured_universe
+from pairs_trading_etf.data.universe import load_configured_universe
 from pairs_trading_etf.features.pair_generation import enumerate_pairs
 
 logger = logging.getLogger(__name__)

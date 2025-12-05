@@ -18,18 +18,24 @@ import logging
 import sys
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
-# Add src to path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root / "src"))
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_PATH = PROJECT_ROOT / "src"
 
-from pairs_trading_etf.backtests import (
-    BacktestConfig,
-    run_walkforward_backtest,
-    load_config,
-)
+try:
+    from pairs_trading_etf.backtests import (
+        BacktestConfig,
+        run_walkforward_backtest,
+        load_config,
+    )
+except ModuleNotFoundError:  # pragma: no cover
+    sys.path.insert(0, str(SRC_PATH))
+    from pairs_trading_etf.backtests import (  # type: ignore[no-redef]
+        BacktestConfig,
+        run_walkforward_backtest,
+        load_config,
+    )
 
 logging.basicConfig(level=logging.WARNING, format='%(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -49,7 +55,7 @@ def run_period_analysis(
         trades, summary = run_walkforward_backtest(prices, cfg, start, end)
         
         if summary.empty:
-            print(f"  ⚠️ No trades")
+            print("  ⚠️ No trades")
             continue
         
         total_pnl = summary['total_pnl'].sum()
@@ -112,7 +118,7 @@ def run_regime_analysis(
         print(f"   Total PnL: ${crisis['total_pnl'].sum():,.0f}")
     
     if not normal.empty:
-        print(f"\n🟢 Normal Years:")
+        print("\n🟢 Normal Years:")
         print(f"   Avg Return: {normal['return_pct'].mean():.2f}%")
         print(f"   Avg Win Rate: {normal['win_rate'].mean():.1f}%")
         print(f"   Total PnL: ${normal['total_pnl'].sum():,.0f}")
@@ -189,7 +195,7 @@ def main():
     run_regime_analysis(prices, cfg, 2010, 2024)
     
     # Save results
-    output_path = project_root / "results" / "sensitivity_analysis.csv"
+    output_path = PROJECT_ROOT / "results" / "sensitivity_analysis.csv"
     results_df.to_csv(output_path, index=False)
     print(f"\n\n✅ Results saved to: {output_path}")
     

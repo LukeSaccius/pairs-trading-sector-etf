@@ -17,8 +17,6 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Sequence
-
-import numpy as np
 import pandas as pd
 import yfinance as yf
 
@@ -263,7 +261,7 @@ def download_batch(
             elif "Adj Close" in raw.columns.get_level_values(0):
                 prices = raw["Adj Close"]
             else:
-                logger.warning(f"No Close or Adj Close found, using first level")
+                logger.warning("No Close or Adj Close found, using first level")
                 prices = raw.iloc[:, raw.columns.get_level_values(0) == raw.columns.get_level_values(0)[0]]
         else:
             prices = raw

@@ -29,7 +29,6 @@ from pairs_trading_etf.data.global_downloader import (
     save_global_data,
 )
 from pairs_trading_etf.data.global_universe import (
-    GlobalETFUniverse,
     get_ticker_regions,
     load_global_universe,
 )
@@ -151,7 +150,7 @@ def main():
     n_batches = (n_tickers + config.batch_size - 1) // config.batch_size
     est_time = n_batches * (config.sleep_between_batches + 2)  # ~2s per batch download
     
-    print(f"Download plan:")
+    print("Download plan:")
     print(f"  Tickers: {n_tickers}")
     print(f"  Batches: {n_batches}")
     print(f"  Estimated time: {est_time/60:.1f} minutes")

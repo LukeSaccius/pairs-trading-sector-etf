@@ -11,10 +11,10 @@ import yaml
 import numpy as np
 from scipy.stats import norm
 from scipy.optimize import minimize_scalar
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any, Tuple
+from typing import Dict, Any, Tuple
 
 from ..utils.sectors import DEFAULT_EXCLUDED_SECTORS
 
@@ -50,7 +50,7 @@ class BacktestConfig:
     # ==========================================================================
     # WARNING: p-value must be 0.01 or 0.05 ONLY. Never increase above 0.05!
     # Higher p-values lead to false positives and poor out-of-sample performance.
-    # Per research findings: "trong những dự án sau tuyệt đối không được chỉnh lên"
+    # Per research findings: "Do not increase this threshold in future projects"
     pvalue_threshold: float = 0.05   # E-G cointegration p-value (LOCKED: 0.01 or 0.05)
     min_half_life: float = 2.0       # Ch.7: Too fast = noise (< 2 days)
     max_half_life: float = 50.0      # Ch.7: Too slow = capital inefficient (> 50 days)
@@ -86,11 +86,12 @@ class BacktestConfig:
     # ==========================================================================
     # Trading Signals (Vidyamurthy Ch.8: Optimal Threshold Design)
     # ==========================================================================
-    # Per Ch.8: Optimal threshold Δ* ≈ 0.75σ maximizes profit function f(Δ) = Δ × [1 - N(Δ)]
-    # This balances profit-per-trade (higher Δ) vs trade frequency (lower Δ)
+    # Per Ch.8: Optimal threshold Delta* ~ 0.75 sigma maximizes profit function f(Delta) = Delta * [1 - N(Delta)]
+    # This balances profit-per-trade (higher Delta) vs trade frequency (lower Delta)
     # Traditional z-score (2.0-2.5) is statistically motivated, NOT economically optimal
-    # Use compute_optimal_threshold() to verify: solves d/dΔ[Δ(1-N(Δ))] = 0 → Δ* ≈ 0.7477
-    entry_threshold_sigma: float = 0.75   # Ch.8 optimal Δ* (NOT traditional 2.0!)
+    # Use compute_optimal_threshold() to verify: solves d/dDelta[Delta(1-N(Delta))] = 0 -> Delta* ~ 0.7477
+    entry_threshold_sigma: float = 0.75   # Ch.8 optimal Delta* (NOT traditional 2.0!)
+    use_optimal_entry_threshold: bool = False  # If True, compute entry threshold from transaction costs
     exit_threshold_sigma: float = 0.0     # Exit at mean (spread = equilibrium)
     exit_tolerance_sigma: float = 0.1     # Ch.8: Exit if |z - exit_threshold| <= tolerance
     stop_loss_sigma: float = 4.0          # Z-score stop (backup if time_based_stops=False)
@@ -101,7 +102,7 @@ class BacktestConfig:
     # ==========================================================================
     # Per QMA: Lookback should scale with pair's half-life for consistent signal quality
     # Formula: lookback = clamp(4 * half_life, min_lookback, max_lookback)
-    # Faster mean-reversion (small HL) → shorter lookback; slower → longer lookback
+    # Faster mean-reversion (small HL) -> shorter lookback; slower -> longer lookback
     use_adaptive_lookback: bool = True  # RECOMMENDED: True for QMA compliance
     adaptive_lookback_multiplier: float = 4.0  # lookback = multiplier * half_life
     adaptive_lookback_min: int = 30     # Minimum lookback (avoid noisy estimates)
@@ -111,9 +112,9 @@ class BacktestConfig:
     # QMA Level 2: Fixed Exit Parameters
     # ==========================================================================
     # Per Quantitative Methods for Algorithmic Trading (QMA):
-    # Exit z-score should use FIXED μ_entry, σ_entry captured at entry time.
+    # Exit z-score should use FIXED mu_entry and sigma_entry captured at entry time.
     # This prevents "Rolling Beta Trap" where exit z uses different distribution.
-    # When enabled, exit z = (spread - μ_entry) / σ_entry
+    # When enabled, exit z = (spread - mu_entry) / sigma_entry
     use_fixed_exit_params: bool = True  # RECOMMENDED: True for QMA compliance
     
     # ==========================================================================
@@ -125,11 +126,13 @@ class BacktestConfig:
     # ==========================================================================
     # Position Management
     # ==========================================================================
-    max_holding_days: int = 60       # Ch.8: ~3 × typical HL (fallback exit)
+    max_holding_days: int = 60       # Ch.8: ~3 x typical HL (fallback exit when dynamic=False)
     max_positions: int = 10          # Max concurrent positions (0 = unlimited)
-    dynamic_hedge: bool = True       # Update hedge ratio during trading
+    dynamic_hedge: bool = True       # Update hedge ratio during trading (rolling OLS)
     dynamic_max_holding: bool = True # Scale max holding by half-life
-    max_holding_multiplier: float = 3.0  # max_hold = min(multiplier * half_life, max_holding_days)
+    max_holding_multiplier: float = 3.0  # max_hold = multiplier * half_life (no cap unless specified)
+    max_dynamic_holding_days: int = 0    # Optional cap for dynamic holding (0 = no cap)
+    hedge_ratio_method: str = "auto"     # "auto", "rolling", "kalman", or "fixed"
     
     # ==========================================================================
     # Capital Allocation (see engine.py for logic)
@@ -148,6 +151,17 @@ class BacktestConfig:
     min_zero_crossing_rate: float = 0.0  # Min zero crossings per year (0 = disabled, recommend 5+)
     time_based_stops: bool = True    # Ch.8: RECOMMENDED - time-based stop tightening
     stop_tightening_rate: float = 0.15 # Ch.8: Tighten 15% per HL elapsed
+    
+    # ==========================================================================
+    # Adaptive Stop-Loss (scale with half-life)
+    # ==========================================================================
+    # Rationale: Faster mean-reversion (short HL) should have tighter stops
+    # Faster mean-reversion (short HL) -> tighter stop (should recover quickly)
+    #           Slower mean-reversion (long HL) needs wider stops
+    #           (give more time for convergence)
+    # Formula: stop_sigma = base + 0.5 * (HL/10 - 1), clamped to [3.0, 5.0]
+    # HL=5:  3.25 sigma | HL=10: 3.5 sigma | HL=20: 4.0 sigma | HL=30: 4.5 sigma
+    use_adaptive_stop_loss: bool = True  # Enable half-life based stop scaling
     
     # [Vidyamurthy:Ch.7:p114-115] Bootstrap procedure for holding period estimation
     use_bootstrap_holding_period: bool = True  # Use bootstrap for HL estimation
@@ -206,7 +220,7 @@ class BacktestConfig:
     # ==========================================================================
     # Costs and Risk
     # ==========================================================================
-    transaction_cost_bps: float = 10.0  # Round-trip cost in basis points
+    transaction_cost_bps: float = 10.0  # Default 10 bps for ETF pairs; override via config per regime
     
     # ==========================================================================
     # Blacklist
@@ -293,7 +307,23 @@ def load_config(path: str) -> BacktestConfig:
     if 'backtest' in data:
         data = data['backtest']
     
-    return BacktestConfig(**data)
+    # Backwards compatibility for legacy field names
+    legacy_fields = {
+        'entry_zscore': 'entry_threshold_sigma',
+        'exit_zscore': 'exit_threshold_sigma',
+        'stop_loss_zscore': 'stop_loss_sigma',
+    }
+    for old_key, new_key in legacy_fields.items():
+        if old_key in data:
+            data.setdefault(new_key, data.pop(old_key))
+    
+    cfg = BacktestConfig(**data)
+    
+    # Optional: auto-compute entry threshold using Gatev/Vidyamurthy formula
+    if getattr(cfg, 'use_optimal_entry_threshold', False):
+        cfg.entry_threshold_sigma = compute_optimal_threshold(cfg.transaction_cost_bps)
+    
+    return cfg
 
 
 def merge_configs(base: BacktestConfig, overrides: Dict[str, Any]) -> BacktestConfig:
@@ -350,21 +380,21 @@ def compute_optimal_threshold(slippage_bps: float = 0.0) -> float:
     """
     Compute optimal entry threshold per QMA Chapter 8.
     
-    For white noise spread, the optimal threshold Δ* maximizes:
-        f(Δ) = Δ × [1 - N(Δ)]
+    For white-noise spreads, the optimal threshold Delta* maximizes:
+        f(Delta) = Delta * [1 - N(Delta)]
     
-    where N(Δ) is the CDF of standard normal distribution.
+    where N(Delta) is the CDF of the standard normal distribution.
     
     Solving the first-order condition:
-        d/dΔ [Δ(1 - N(Δ))] = 0
-        [1 - N(Δ)] - Δ × n(Δ) = 0
+        d/dDelta [Delta(1 - N(Delta))] = 0
+        [1 - N(Delta)] - Delta * n(Delta) = 0
     
-    gives Δ* ≈ 0.7477 (approximately 0.75σ).
+    gives Delta* ~ 0.7477 (approximately 0.75 sigma).
     
     Interpretation:
-    - Δ too small → many trades, but small profit per trade
-    - Δ too large → big profit per trade, but few trades
-    - Δ* = 0.75σ is the economically optimal balance
+    - Delta too small -> many trades, but small profit per trade
+    - Delta too large -> big profit per trade, but few trades
+    - Delta* = 0.75 sigma is the economically optimal balance
     
     Parameters
     ----------
@@ -402,7 +432,7 @@ def compute_optimal_threshold(slippage_bps: float = 0.0) -> float:
     optimal_delta = result.x
     
     # Adjust for slippage if needed
-    # Slippage in sigma units (rough approximation: 10 bps ≈ 0.01 sigma for typical spread)
+    # Slippage in sigma units (rough approximation: 10 bps ~ 0.01 sigma for typical spread)
     if slippage_bps > 0:
         slippage_sigma = slippage_bps / 1000  # Rough conversion
         # Ensure profit per trade (2*delta) > slippage
@@ -422,7 +452,7 @@ def compute_nonparametric_threshold(
     
     Instead of assuming white noise, this method:
     1. Counts actual level crossings at various thresholds
-    2. Computes profit = threshold × crossings for each level
+    2. Computes profit = threshold * crossings for each level
     3. Returns threshold that maximizes profit
     
     This handles ARMA-like spreads that deviate from white noise assumption.
@@ -450,7 +480,7 @@ def compute_nonparametric_threshold(
     profits = []
     
     for delta in deltas:
-        # Count level crossings (transitions across ±delta)
+        # Count level crossings (transitions across +/- delta)
         above_upper = spread_std >= delta
         below_lower = spread_std <= -delta
         

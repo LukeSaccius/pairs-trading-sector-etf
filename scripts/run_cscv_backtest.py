@@ -17,19 +17,26 @@ Output:
 import sys
 from pathlib import Path
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
 import pandas as pd
 import yaml
 
-from src.pairs_trading_etf.backtests import (
-    BacktestConfig,
-    run_cscv_backtest,
-    CSCVBacktestSplit,
-    ParameterGrid,
-)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_PATH = PROJECT_ROOT / "src"
+try:
+    from pairs_trading_etf.backtests import (
+        BacktestConfig,
+        run_cscv_backtest,
+        CSCVBacktestSplit,
+        ParameterGrid,
+    )
+except ModuleNotFoundError:  # pragma: no cover
+    sys.path.append(str(SRC_PATH))
+    from pairs_trading_etf.backtests import (  # type: ignore[no-redef]
+        BacktestConfig,
+        run_cscv_backtest,
+        CSCVBacktestSplit,
+        ParameterGrid,
+    )
 
 
 def main():
@@ -39,7 +46,7 @@ def main():
     print("=" * 70)
     
     # Load data
-    data_path = project_root / "data" / "raw" / "etf_prices_fresh.csv"
+    data_path = PROJECT_ROOT / "data" / "raw" / "etf_prices_fresh.csv"
     print(f"\nLoading data from: {data_path}")
     
     prices = pd.read_csv(data_path, index_col=0, parse_dates=True)
@@ -47,7 +54,7 @@ def main():
     print(f"  Date range: {prices.index.min()} to {prices.index.max()}")
     
     # Load base config
-    config_path = project_root / "configs" / "experiments" / "v16_optimized.yaml"
+    config_path = PROJECT_ROOT / "configs" / "experiments" / "v16_optimized.yaml"
     print(f"\nLoading base config from: {config_path}")
     
     with open(config_path) as f:
@@ -65,7 +72,7 @@ def main():
         test_end=2024,
     )
     
-    print(f"\nData split:")
+    print("\nData split:")
     print(f"  TRAIN: {split.train_start}-{split.train_end}")
     print(f"  VAL:   {split.val_start}-{split.val_end}")
     print(f"  TEST:  {split.test_start}-{split.test_end}")
@@ -100,7 +107,7 @@ def main():
     print(f"Best config: {result.best_config_name}")
     
     if result.cscv_result:
-        print(f"\nCSCV Results:")
+        print("\nCSCV Results:")
         print(f"  PBO: {result.cscv_result.pbo:.3f}")
         print(f"  Deflated Sharpe: {result.deflated_sharpe:.2f}")
         print(f"  Is overfit: {result.is_overfit}")
@@ -108,7 +115,7 @@ def main():
     print(f"\nRecommendation: {result.recommendation}")
     
     if result.test_pnl is not None:
-        print(f"\nTest Results:")
+        print("\nTest Results:")
         print(f"  PnL: ${result.test_pnl:,.2f}")
         print(f"  Trades: {result.test_trades}")
         print(f"  Win Rate: {result.test_win_rate*100:.1f}%")
@@ -117,7 +124,7 @@ def main():
         print("\n⚠️ Test phase was NOT executed (strategy overfit)")
     
     # Save results
-    results_dir = project_root / "results" / "experiments" / "cscv_backtest"
+    results_dir = PROJECT_ROOT / "results" / "experiments" / "cscv_backtest"
     results_dir.mkdir(parents=True, exist_ok=True)
     
     results_file = results_dir / "cscv_results.yaml"

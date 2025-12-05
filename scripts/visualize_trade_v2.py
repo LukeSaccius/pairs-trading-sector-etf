@@ -42,6 +42,38 @@ def load_etf_sectors():
     return etf_to_sector
 
 
+def load_config_thresholds(trades_path):
+    """Load entry/exit thresholds from config_snapshot.yaml in same folder as trades.csv"""
+    trades_path = Path(trades_path)
+    config_path = trades_path.parent / "config_snapshot.yaml"
+    
+    # Default values if config not found
+    defaults = {
+        'entry_threshold_sigma': 2.0,
+        'exit_threshold_sigma': 0.5,
+        'stop_loss_sigma': 4.0,
+        'zscore_lookback': 60
+    }
+    
+    if not config_path.exists():
+        print(f"Warning: config_snapshot.yaml not found at {config_path}, using defaults")
+        return defaults
+    
+    try:
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        return {
+            'entry_threshold_sigma': config.get('entry_threshold_sigma', defaults['entry_threshold_sigma']),
+            'exit_threshold_sigma': config.get('exit_threshold_sigma', defaults['exit_threshold_sigma']),
+            'stop_loss_sigma': config.get('stop_loss_sigma', defaults['stop_loss_sigma']),
+            'zscore_lookback': config.get('zscore_lookback', defaults['zscore_lookback'])
+        }
+    except Exception as e:
+        print(f"Warning: Could not load config: {e}, using defaults")
+        return defaults
+
+
 def find_latest_trades_file():
     """Find most recent trades file from V16b or latest backtest"""
     results_dir = project_root / "results"
@@ -80,7 +112,8 @@ def load_data(trades_path=None):
 
 
 def visualize_trade_enhanced(trade_row, prices, capital_at_entry=None, 
-                              context_days=30, save=True, output_dir=None):
+                              context_days=30, save=True, output_dir=None,
+                              config_thresholds=None):
     """
     Enhanced trade visualization with comprehensive information
     
@@ -98,7 +131,18 @@ def visualize_trade_enhanced(trade_row, prices, capital_at_entry=None,
         Whether to save figure
     output_dir : Path, optional
         Custom output directory
+    config_thresholds : dict, optional
+        Dict with entry_threshold_sigma, exit_threshold_sigma, stop_loss_sigma
     """
+    # Use default thresholds if not provided
+    if config_thresholds is None:
+        config_thresholds = {
+            'entry_threshold_sigma': 2.0,
+            'exit_threshold_sigma': 0.5, 
+            'stop_loss_sigma': 4.0,
+            'zscore_lookback': 60
+        }
+    
     etf_sectors = load_etf_sectors()
     
     # Extract trade info
@@ -162,12 +206,6 @@ def visualize_trade_enhanced(trade_row, prices, capital_at_entry=None,
     
     # Calculate % change from ENTRY date
     entry_p1 = p1.iloc[entry_idx]
-    entry_p2 = p2.iloc[exit_idx]
-    pct_change1 = (p1 / entry_p1 - 1) * 100
-    pct_change2 = (p2 / entry_p2 - 1) * 100
-    
-    # Recalculate from actual entry prices
-    entry_p1 = p1.iloc[entry_idx]
     entry_p2 = p2.iloc[entry_idx]
     pct_change1 = (p1 / entry_p1 - 1) * 100
     pct_change2 = (p2 / entry_p2 - 1) * 100
@@ -175,8 +213,13 @@ def visualize_trade_enhanced(trade_row, prices, capital_at_entry=None,
     # Calculate spreads
     log_spread = np.log(p1) - hedge_ratio * np.log(p2)
     
-    # Calculate z-score with lookback
-    lookback = min(60, len(log_spread)//2)
+    # Calculate z-score with lookback from config (align with engine's adaptive logic)
+    lookback = config_thresholds.get('zscore_lookback', 60)
+    if not np.isnan(half_life):
+        lookback = int(max(30, min(120, 4 * half_life)))  # clamp to [30, 120]
+        lookback = min(lookback, len(log_spread))  # cannot exceed available
+    else:
+        lookback = min(lookback, len(log_spread) // 2)
     spread_mean = log_spread.rolling(window=lookback, min_periods=10).mean()
     spread_std = log_spread.rolling(window=lookback, min_periods=10).std()
     zscore = (log_spread - spread_mean) / spread_std
@@ -242,7 +285,11 @@ def visualize_trade_enhanced(trade_row, prices, capital_at_entry=None,
                    fontsize=10, verticalalignment='center', horizontalalignment='center')
     
     # Line 3: Capital and Hedge - y=0.38
-    info_line2 = f"Portfolio: ${capital_at_entry:,.0f}  |  Position: ${position_capital:,.0f}  |  Hedge Ratio: {hedge_ratio:.3f}"
+    pvalue_str = f"{pvalue:.3f}" if not np.isnan(pvalue) else "N/A"
+    info_line2 = (
+        f"Portfolio: ${capital_at_entry:,.0f}  |  Position: ${position_capital:,.0f}  |  "
+        f"Hedge Ratio: {hedge_ratio:.3f}  |  P-value: {pvalue_str}  |  Year: {trading_year}"
+    )
     ax_header.text(0.5, 0.38, info_line2, transform=ax_header.transAxes,
                    fontsize=9, verticalalignment='center', horizontalalignment='center',
                    color='#444444')
@@ -343,20 +390,33 @@ def visualize_trade_enhanced(trade_row, prices, capital_at_entry=None,
     
     ax4.plot(zscore.index, zscore.values, color='#2c3e50', linewidth=2, label='Z-Score')
     
-    # Thresholds
-    ax4.axhline(2.8, color='red', linestyle='--', alpha=0.7, label='Entry (±2.8)')
-    ax4.axhline(-2.8, color='red', linestyle='--', alpha=0.7)
-    ax4.axhline(0.3, color='green', linestyle=':', alpha=0.7, label='Exit (±0.3)')
-    ax4.axhline(-0.3, color='green', linestyle=':', alpha=0.7)
+    # Thresholds from config (FIX: was hardcoded 2.8/0.3/3.0)
+    entry_thresh = config_thresholds['entry_threshold_sigma']
+    exit_thresh = config_thresholds['exit_threshold_sigma']
+    stop_thresh = config_thresholds['stop_loss_sigma']
+    
+    ax4.axhline(entry_thresh, color='red', linestyle='--', alpha=0.7, label=f'Entry (±{entry_thresh})')
+    ax4.axhline(-entry_thresh, color='red', linestyle='--', alpha=0.7)
+    ax4.axhline(exit_thresh, color='green', linestyle=':', alpha=0.7, label=f'Exit (±{exit_thresh})')
+    ax4.axhline(-exit_thresh, color='green', linestyle=':', alpha=0.7)
     ax4.axhline(0, color='gray', linestyle='-', alpha=0.5)
-    ax4.axhline(3.0, color='darkred', linestyle='-.', alpha=0.5, label='Stop (±3.0)')
-    ax4.axhline(-3.0, color='darkred', linestyle='-.', alpha=0.5)
+    ax4.axhline(stop_thresh, color='darkred', linestyle='-.', alpha=0.5, label=f'Stop (±{stop_thresh})')
+    ax4.axhline(-stop_thresh, color='darkred', linestyle='-.', alpha=0.5)
     
     ax4.axvspan(entry_date, exit_date, alpha=0.15, color='green' if pnl > 0 else 'red')
     
     # Entry/Exit z markers
-    calc_entry_z = zscore.iloc[entry_idx] if not np.isnan(zscore.iloc[entry_idx]) else entry_z
-    calc_exit_z = zscore.iloc[exit_idx] if not np.isnan(zscore.iloc[exit_idx]) else exit_z
+    # Use actual z from trades.csv FIRST (these are what engine used),
+    # fallback to recalculated rolling z only if missing.
+    if not np.isnan(entry_z):
+        calc_entry_z = entry_z
+    else:
+        calc_entry_z = zscore.iloc[entry_idx] if not np.isnan(zscore.iloc[entry_idx]) else 0.0
+    
+    if not np.isnan(exit_z):
+        calc_exit_z = exit_z
+    else:
+        calc_exit_z = zscore.iloc[exit_idx] if not np.isnan(zscore.iloc[exit_idx]) else 0.0
     
     ax4.scatter([common_idx[entry_idx]], [calc_entry_z], marker='^', s=150, 
                 color='blue', edgecolor='black', linewidth=1.5, zorder=5)
@@ -367,6 +427,11 @@ def visualize_trade_enhanced(trade_row, prices, capital_at_entry=None,
                  xytext=(5, 5), textcoords='offset points', fontsize=8, color='blue')
     ax4.annotate(f'{calc_exit_z:.2f}', xy=(common_idx[exit_idx], calc_exit_z),
                  xytext=(5, -10), textcoords='offset points', fontsize=8, color='purple')
+    
+    # Clarify that plotted z-score uses rolling window; engine may use fixed exit params.
+    ax4.text(0.01, 0.05, "Z shown = rolling; engine uses entry-time params for exits",
+             transform=ax4.transAxes, fontsize=7, color='#555555', ha='left', va='bottom',
+             bbox=dict(boxstyle='round', facecolor='white', alpha=0.7, edgecolor='none'))
     
     ax4.set_title('Spread Z-Score', fontsize=11, fontweight='bold')
     ax4.set_ylabel('Z-Score', fontsize=10)
@@ -407,11 +472,6 @@ def visualize_trade_enhanced(trade_row, prices, capital_at_entry=None,
     exit_pnl = total_pnl.iloc[exit_idx]
     ax5.scatter([common_idx[exit_idx]], [exit_pnl], marker='v', s=150, 
                 color='purple', edgecolor='black', linewidth=1.5, zorder=5)
-    
-    # Min/Max PnL during trade
-    trade_period = total_pnl[(common_idx >= entry_date) & (common_idx <= exit_date)]
-    max_pnl = trade_period.max()
-    min_pnl = trade_period.min()
     
     # Annotation - position based on PnL sign
     ax5.annotate(f'Exit: ${exit_pnl:+,.0f} (net: ${pnl:+,.0f})', 
@@ -614,13 +674,20 @@ if __name__ == "__main__":
     
     save = not args.no_save
     
+    # Load config thresholds from trades file location
+    prices, trades, trades_path = load_data(args.trades)
+    config_thresholds = load_config_thresholds(trades_path)
+    print(f"Using thresholds: entry=±{config_thresholds['entry_threshold_sigma']}, "
+          f"exit=±{config_thresholds['exit_threshold_sigma']}, "
+          f"stop=±{config_thresholds['stop_loss_sigma']}")
+    
     if args.all:
         # Generate all trades
-        prices, trades, _ = load_data(args.trades)
         print(f"\nGenerating {len(trades)} visualizations...")
         for idx, trade in trades.iterrows():
             try:
-                visualize_trade_enhanced(trade, prices, save=save)
+                visualize_trade_enhanced(trade, prices, save=save, 
+                                        config_thresholds=config_thresholds)
             except Exception as e:
                 print(f"Error on trade {idx}: {e}")
         print(f"\nDone! Generated {len(trades)} figures in results/figures/")
@@ -633,7 +700,6 @@ if __name__ == "__main__":
     elif args.exit_reason:
         show_trades_by_exit_reason(args.exit_reason, args.trades, args.max, save=save)
     elif args.pair:
-        prices, trades, _ = load_data(args.trades)
         etf1, etf2 = args.pair
         mask = ((trades['leg_x'] == etf1) & (trades['leg_y'] == etf2)) | \
                ((trades['leg_x'] == etf2) & (trades['leg_y'] == etf1))
@@ -642,11 +708,12 @@ if __name__ == "__main__":
             print(f"No trades found for {etf1}/{etf2}")
         else:
             for idx, trade in matching.head(args.max).iterrows():
-                visualize_trade_enhanced(trade, prices, save=save)
+                visualize_trade_enhanced(trade, prices, save=save,
+                                        config_thresholds=config_thresholds)
     elif args.index is not None:
-        prices, trades, _ = load_data(args.trades)
         if 0 <= args.index < len(trades):
-            visualize_trade_enhanced(trades.iloc[args.index], prices, save=save)
+            visualize_trade_enhanced(trades.iloc[args.index], prices, save=save,
+                                    config_thresholds=config_thresholds)
         else:
             print(f"Index out of range. Total trades: {len(trades)}")
     else:

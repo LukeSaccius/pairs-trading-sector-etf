@@ -1,0 +1,84 @@
+# V18 - SNR/ZCR Conservative (Stop Disabled)
+# Goal: quality gates on mean-reversion strength, conservative entry, no stop-loss bias
+
+experiment_name: v18_snr_zcr_conservative
+description: "SNR>=1.5, ZCR>=5, entry 3.0σ, exit 0.5σ, stop disabled"
+
+# Formation & trading windows
+formation_days: 252
+trading_days: 252
+use_log_prices: true
+
+# Cointegration
+pvalue_threshold: 0.05        # 95% confidence, avoid false positives vs 0.10
+min_half_life: 5.0
+max_half_life: 30.0
+
+# Correlation filter
+min_correlation: 0.75
+max_correlation: 0.95
+
+# Pair selection
+top_pairs: 30
+max_pairs_per_sector: 6
+max_pairs_per_etf: 2
+min_spread_range_pct: 0.02
+
+# Sector focus (avoid EM/emerging noise)
+sector_focus: true
+exclude_sectors: ['EMERGING']
+
+# Trading thresholds
+entry_threshold_sigma: 3.0
+exit_threshold_sigma: 0.5
+exit_tolerance_sigma: 0.0
+stop_loss_sigma: 99.0         # effectively disabled to remove stop-loss bias
+
+# Lookback
+use_adaptive_lookback: true
+adaptive_lookback_multiplier: 4.0
+adaptive_lookback_min: 20
+adaptive_lookback_max: 120
+
+# Fixed exit params (avoid rolling beta trap)
+use_fixed_exit_params: true
+
+# Time-based stops
+time_based_stops: false
+max_holding_days: 60
+dynamic_max_holding: true
+max_holding_multiplier: 3.0
+
+# Quality gates
+min_snr: 1.5
+min_zero_crossing_rate: 5.0
+
+# Hedge ratio bounds
+min_hedge_ratio: 0.6
+max_hedge_ratio: 1.7
+
+# Capital & positions
+initial_capital: 50000.0
+leverage: 1.0
+compounding: true
+max_positions: 10
+max_capital_per_trade: 15000.0
+min_pairs_for_trading: 2
+
+# Costs
+transaction_cost_bps: 5.0
+
+# Blacklist
+blacklist_stoploss_rate: 0.30
+blacklist_min_trades: 3
+
+# Output
+timestamped_output: true
+save_trades: true
+save_summary: true
+save_config_snapshot: true
+output_dir: results
+
+# Data paths
+price_data_path: data/raw/etf_prices_fresh.csv
+etf_metadata_path: configs/etf_metadata.yaml

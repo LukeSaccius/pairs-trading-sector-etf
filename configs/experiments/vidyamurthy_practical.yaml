@@ -13,7 +13,7 @@ description: "Vidyamurthy framework with practical thresholds"
 # ============================================================================
 formation_days: 252
 trading_days: 252
-pvalue_threshold: 0.01         # 99% confidence [Engle:Granger:1987]
+pvalue_threshold: 0.05         # Relaxed to 95% confidence to admit more pairs
 use_log_prices: true           # REQUIRED [Vidyamurthy:Ch.5:p75]
 
 # Half-Life Bounds (user preference - NOT specified by Vidyamurthy)
@@ -50,7 +50,7 @@ min_passing_windows: 2
 entry_threshold_sigma: 2.0     # Empirically optimal for ETF pairs
 exit_threshold_sigma: 0.5      # Exit before mean to capture profit
 exit_tolerance_sigma: 0.0      # No tolerance band
-stop_loss_sigma: 4.0           # Wide stop
+stop_loss_sigma: 99.0          # Effectively disable stop-loss to study mean reversion (was 3.0 - too tight!)
 
 # ============================================================================
 # CH.7/8: TRADABILITY & EXITS
@@ -77,9 +77,10 @@ max_holding_multiplier: 3.0
 # ============================================================================
 max_positions: 10
 compounding: true
-leverage: 1.0
+leverage: 2.0
 dynamic_hedge: true
 hedge_update_days: 63
+min_pairs_for_trading: 1
 
 transaction_cost_bps: 5.0
 

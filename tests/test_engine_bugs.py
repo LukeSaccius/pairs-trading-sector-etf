@@ -188,8 +188,9 @@ class TestHalfLifeInEngine:
             spread[t] = phi_true * spread[t-1] + rng.normal(0, 0.1)
         
         # Theoretical half-life
-        hl_correct = -np.log(2) / np.log(phi_true)  # ≈ 6.58
-        hl_wrong = -np.log(2) / b_true  # = 6.93 (old wrong formula)
+        hl_correct = -np.log(2) / np.log(phi_true)
+        hl_wrong = -np.log(2) / b_true
+        assert not np.isclose(hl_correct, hl_wrong, rtol=0.01)
         
         # Create cointegrated prices from this spread
         x_prices = 100 + spread + np.cumsum(rng.normal(0, 0.1, n))
@@ -200,14 +201,13 @@ class TestHalfLifeInEngine:
         
         result = run_engle_granger_test(
             series_x, series_y,
-            use_log=False,  # Use price levels for this test
-            pvalue_threshold=0.50,  # Very relaxed
+            use_log=False,
+            pvalue_threshold=0.50,
             min_half_life=1,
             max_half_life=100,
         )
-        
-        # The test mainly ensures the function runs without using wrong formula
-        # Actual half-life depends on series construction
+        assert result is not None
+        assert 1 <= result["half_life"] <= 100
 
 
 class TestKalmanSpreadSign:

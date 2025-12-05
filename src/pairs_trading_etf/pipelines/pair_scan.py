@@ -269,7 +269,7 @@ def _filter_rolling_consistency(
         
         # Get price series for the pair
         if ticker_a not in prices.columns or ticker_b not in prices.columns:
-            excluded.append((score, f"rolling_error:ticker_not_found"))
+            excluded.append((score, "rolling_error:ticker_not_found"))
             continue
             
         price_x = prices[ticker_a]
